@@ -133,6 +133,53 @@ The application will be available at:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:3000/api
 
+## Utility Scripts
+
+The application comes with utility scripts to help manage the service and check prerequisites:
+
+### Prerequisites Check
+```bash
+# Check if all required software and configurations are in place
+./scripts/check-prerequisites.sh
+```
+
+This script checks for:
+- Node.js installation
+- npm installation
+- MySQL installation and connectivity
+- Git installation
+- Required configuration files and properties
+
+### Service Management
+```bash
+# Build the application
+./scripts/manage-service.sh build
+
+# Start in production mode
+./scripts/manage-service.sh start
+
+# Start in development mode
+./scripts/manage-service.sh start-dev
+
+# Stop the service
+./scripts/manage-service.sh stop
+
+# Restart in production mode
+./scripts/manage-service.sh restart
+
+# Restart in development mode
+./scripts/manage-service.sh restart-dev
+
+# Check service status
+./scripts/manage-service.sh status
+```
+
+The service management script:
+- Automatically detects the port from config.properties
+- Ensures only one instance is running
+- Gracefully stops the service when requested
+- Provides clear status information
+
 ## Project Structure
 ```
 hrms-unified/
@@ -149,6 +196,9 @@ hrms-unified/
 ├── routes/                # Backend API routes
 ├── utils/                 # Utility functions
 ├── config/               # Configuration files
+├── scripts/              # Utility scripts
+│   ├── check-prerequisites.sh  # Check required software
+│   └── manage-service.sh      # Manage application lifecycle
 └── server.js             # Backend entry point
 ```
 
