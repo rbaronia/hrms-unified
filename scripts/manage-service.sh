@@ -6,6 +6,23 @@ get_port() {
     echo ${port:-3000}  # Default to 3000 if not found
 }
 
+# Check if node_modules exists and is up to date
+check_node_modules() {
+    local dir=$1
+    local package_json="$dir/package.json"
+    local node_modules="$dir/node_modules"
+    
+    if [ ! -d "$node_modules" ]; then
+        return 1
+    fi
+    
+    if [ "$package_json" -nt "$node_modules" ]; then
+        return 1
+    fi
+    
+    return 0
+}
+
 # Check if the service is running
 check_service() {
     local port=$(get_port)
@@ -36,39 +53,61 @@ stop_service() {
 
 # Ensure client is built
 ensure_client_build() {
-    if [ ! -d "client/build" ]; then
-        echo "Client build directory not found. Building client..."
+    if [ ! -d "client/build" ] || [ "client/src" -nt "client/build" ]; then
+        echo "Client needs to be built..."
         cd client
-        npm install
-        npm run build
+        
+        echo "📦 Checking frontend dependencies..."
+        if ! check_node_modules "."; then
+            echo "Installing frontend dependencies..."
+            npm install --no-audit --no-fund
+        else
+            echo "Frontend dependencies are up to date"
+        fi
+        
+        echo "🏗️  Building frontend..."
+        DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false npm run build
         if [ $? -ne 0 ]; then
-            echo "Client build failed"
+            echo "❌ Client build failed"
             exit 1
         fi
+        echo "✅ Frontend built successfully"
         cd ..
+    else
+        echo "✅ Client build is up to date"
     fi
 }
 
 # Build the application
 build_app() {
-    echo "Building frontend..."
+    # First check backend dependencies
+    echo "📦 Checking backend dependencies..."
+    if ! check_node_modules "."; then
+        echo "Installing backend dependencies..."
+        npm install --no-audit --no-fund
+    else
+        echo "Backend dependencies are up to date"
+    fi
+
+    # Then build frontend
+    echo "🏗️  Building frontend..."
     cd client
-    npm install
-    npm run build
+    if ! check_node_modules "."; then
+        echo "Installing frontend dependencies..."
+        npm install --no-audit --no-fund
+    else
+        echo "Frontend dependencies are up to date"
+    fi
+    
+    echo "Building frontend application..."
+    DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false npm run build
     if [ $? -ne 0 ]; then
-        echo "Frontend build failed"
+        echo "❌ Frontend build failed"
         exit 1
     fi
     cd ..
 
-    echo "Installing backend dependencies..."
-    npm install
-    if [ $? -ne 0 ]; then
-        echo "Backend dependency installation failed"
-        exit 1
-    fi
-
-    echo "Build completed successfully"
+    echo "✅ Build completed successfully"
 }
 
 # Start the service
@@ -82,11 +121,11 @@ start_service() {
     # Always ensure client is built before starting
     ensure_client_build
 
-    echo "Starting service..."
+    echo "🚀 Starting service..."
     if [ "$1" == "dev" ]; then
-        npm run dev
+        NODE_ENV=development npm run dev
     else
-        npm start
+        NODE_ENV=production npm start
     fi
 }
 
@@ -95,9 +134,9 @@ show_status() {
     local port=$(get_port)
     if check_service; then
         local pid=$(lsof -t -i:$port)
-        echo "Service is running on port $port (PID: $pid)"
+        echo "✅ Service is running on port $port (PID: $pid)"
     else
-        echo "Service is not running"
+        echo "❌ Service is not running"
     fi
 }
 
