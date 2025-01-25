@@ -16,6 +16,7 @@ StandardError=syslog
 SyslogIdentifier=hrms-app
 Environment=NODE_ENV=production
 Environment=HOME=/home/<your-user>
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
 
 [Install]
 WantedBy=multi-user.target

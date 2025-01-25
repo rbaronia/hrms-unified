@@ -116,16 +116,16 @@ cd ..
 #### Using Service Management Script (Recommended)
 ```bash
 # Start in development mode
-./scripts/manage-service.sh start-dev
+sudo ./scripts/manage-service.sh start-dev
 
 # Start in production mode
-./scripts/manage-service.sh start
+sudo ./scripts/manage-service.sh start
 
 # Check status
-./scripts/manage-service.sh status
+sudo ./scripts/manage-service.sh status
 
 # Stop the service
-./scripts/manage-service.sh stop
+sudo ./scripts/manage-service.sh stop
 ```
 
 #### Manual Start
@@ -163,7 +163,7 @@ cd hrms-unified
 2. Install dependencies and build:
 ```bash
 # Install node dependencies and build the application
-./scripts/manage-service.sh build
+sudo ./scripts/manage-service.sh build
 ```
 
 3. Configure the application:
@@ -190,6 +190,9 @@ sudo systemctl start hrms.service
 
 ### Service Management
 
+All service management commands require sudo privileges. You can either:
+
+1. Use sudo with each command (recommended):
 ```bash
 # Check service status
 sudo systemctl status hrms.service
@@ -205,6 +208,20 @@ sudo systemctl restart hrms.service
 
 # View logs
 sudo journalctl -u hrms.service
+```
+
+2. Or switch to root first (alternative):
+```bash
+# Switch to root
+sudo su -
+
+# Then run commands without sudo
+systemctl start hrms.service
+systemctl status hrms.service
+# etc...
+
+# Exit root when done
+exit
 ```
 
 ### Automatic Startup
@@ -225,6 +242,13 @@ sudo journalctl -u hrms.service -n 50 --no-pager
 
 # Check service status
 sudo systemctl status hrms.service
+
+# Check if npm is in PATH for root
+sudo which npm
+# If npm not found, use full path
+sudo systemctl edit hrms.service
+# Add this under [Service]:
+# Environment=PATH=/usr/local/bin:/usr/bin:/bin
 ```
 
 2. If MySQL connection fails:
@@ -243,6 +267,22 @@ ls -l ~/hrms-unified
 
 # Fix permissions if needed
 sudo chown -R $USER:$USER ~/hrms-unified
+
+# Check service user
+sudo systemctl show hrms.service | grep User
+
+# Verify npm global installation
+which npm
+echo $PATH
+```
+
+4. If you get authentication prompts:
+```bash
+# Add yourself to the systemd-journal group to view logs
+sudo usermod -a -G systemd-journal $USER
+
+# Use sudo explicitly for all systemctl commands
+sudo systemctl start hrms.service
 ```
 
 ## Utility Scripts
@@ -265,25 +305,25 @@ This script checks for:
 ### Service Management
 ```bash
 # Build the application
-./scripts/manage-service.sh build
+sudo ./scripts/manage-service.sh build
 
 # Start in production mode
-./scripts/manage-service.sh start
+sudo ./scripts/manage-service.sh start
 
 # Start in development mode
-./scripts/manage-service.sh start-dev
+sudo ./scripts/manage-service.sh start-dev
 
 # Stop the service
-./scripts/manage-service.sh stop
+sudo ./scripts/manage-service.sh stop
 
 # Restart in production mode
-./scripts/manage-service.sh restart
+sudo ./scripts/manage-service.sh restart
 
 # Restart in development mode
-./scripts/manage-service.sh restart-dev
+sudo ./scripts/manage-service.sh restart-dev
 
 # Check service status
-./scripts/manage-service.sh status
+sudo ./scripts/manage-service.sh status
 ```
 
 The service management script:
