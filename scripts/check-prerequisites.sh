@@ -14,22 +14,44 @@ check_command() {
     fi
 }
 
+# Function to extract MySQL credentials from config.properties
+get_mysql_credentials() {
+    local jdbc_url=$(grep "^db.jdbcUrl=" config.properties | cut -d'=' -f2-)
+    local host=$(echo $jdbc_url | sed -n 's/.*mysql:\/\/\([^:]*\):.*/\1/p')
+    [ -z "$host" ] && host="localhost"
+    
+    local port=$(echo $jdbc_url | sed -n 's/.*:\/\/[^:]*:\([0-9]*\)\/.*/\1/p')
+    [ -z "$port" ] && port="3306"
+    
+    local user=$(echo $jdbc_url | sed -n 's/.*[?&]user=\([^&]*\).*/\1/p')
+    [ -z "$user" ] && user="root"
+    
+    local pass=$(echo $jdbc_url | sed -n 's/.*[?&]password=\([^&]*\).*/\1/p')
+    [ -z "$pass" ] && pass=""
+    
+    echo "$host $port $user $pass"
+}
+
 # Function to check MySQL connection
 check_mysql() {
     if mysql --version &> /dev/null; then
         echo "✅ MySQL is installed"
+        
+        # Get MySQL credentials
+        read host port user pass <<< $(get_mysql_credentials)
+        
         # Try to connect to MySQL
-        if mysql -u root -p -e "SELECT 1" &> /dev/null; then
+        if mysql -h $host -P $port -u $user -p$pass -e "SELECT 1" &> /dev/null; then
             echo "✅ MySQL connection successful"
             # Check if database exists
-            if mysql -u root -p -e "USE hrmsdb" &> /dev/null; then
+            if mysql -h $host -P $port -u $user -p$pass -e "USE hrmsdb" &> /dev/null; then
                 echo "✅ Database 'hrmsdb' exists"
             else
                 echo "❌ Database 'hrmsdb' does not exist"
                 return 1
             fi
         else
-            echo "❌ Could not connect to MySQL"
+            echo "❌ Could not connect to MySQL (check credentials in config.properties)"
             return 1
         fi
     else
