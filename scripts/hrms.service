@@ -15,6 +15,7 @@ StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=hrms-app
 Environment=NODE_ENV=production
+Environment=HOME=/home/<your-user>
 
 [Install]
 WantedBy=multi-user.target

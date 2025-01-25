@@ -152,34 +152,35 @@ Follow these steps to deploy the application as a system service on RHEL:
 
 ### Installation Steps
 
-1. Clone the repository:
+1. Clone the repository in your home directory:
 ```bash
-sudo mkdir -p /opt
-cd /opt
-sudo git clone https://github.com/rbaronia/hrms-unified.git
+# As the user (e.g., ibmdemo)
+cd ~
+git clone https://github.com/rbaronia/hrms-unified.git
 cd hrms-unified
 ```
 
 2. Install dependencies and build:
 ```bash
 # Install node dependencies and build the application
-sudo ./scripts/manage-service.sh build
+./scripts/manage-service.sh build
 ```
 
 3. Configure the application:
 ```bash
 # Copy the sample config
-sudo cp config.properties.sample config.properties
+cp config.properties.sample config.properties
 
 # Edit the configuration
-sudo vi config.properties
+vi config.properties
 ```
 
 4. Install as a system service:
 ```bash
 cd scripts
-sudo chmod +x install-service.sh
+chmod +x install-service.sh
 sudo ./install-service.sh
+# When prompted, enter your username (e.g., ibmdemo)
 ```
 
 5. Start the service:
@@ -213,6 +214,7 @@ The service is configured to:
 - Restart automatically if it crashes
 - Wait for MySQL to be available before starting
 - Run with proper system permissions
+- Run from the user's home directory
 
 ### Troubleshooting
 
@@ -237,10 +239,10 @@ sudo journalctl -u mysqld
 3. Permission issues:
 ```bash
 # Check file ownership
-ls -l /opt/hrms-unified
+ls -l ~/hrms-unified
 
 # Fix permissions if needed
-sudo chown -R <service-user>:<service-user> /opt/hrms-unified
+sudo chown -R $USER:$USER ~/hrms-unified
 ```
 
 ## Utility Scripts
