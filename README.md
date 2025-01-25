@@ -139,6 +139,110 @@ npm start
 
 Note: The development mode requires the client to be built first. The service management script handles this automatically, but if you're running manually, make sure to build the client first.
 
+## RHEL Server Deployment
+
+Follow these steps to deploy the application as a system service on RHEL:
+
+### Prerequisites
+- RHEL 7 or later
+- Root access or sudo privileges
+- Node.js 14+ installed globally
+- MySQL installed and running
+- Git installed
+
+### Installation Steps
+
+1. Clone the repository:
+```bash
+sudo mkdir -p /opt
+cd /opt
+sudo git clone https://github.com/rbaronia/hrms-unified.git
+cd hrms-unified
+```
+
+2. Install dependencies and build:
+```bash
+# Install node dependencies and build the application
+sudo ./scripts/manage-service.sh build
+```
+
+3. Configure the application:
+```bash
+# Copy the sample config
+sudo cp config.properties.sample config.properties
+
+# Edit the configuration
+sudo vi config.properties
+```
+
+4. Install as a system service:
+```bash
+cd scripts
+sudo chmod +x install-service.sh
+sudo ./install-service.sh
+```
+
+5. Start the service:
+```bash
+sudo systemctl start hrms.service
+```
+
+### Service Management
+
+```bash
+# Check service status
+sudo systemctl status hrms.service
+
+# Start the service
+sudo systemctl start hrms.service
+
+# Stop the service
+sudo systemctl stop hrms.service
+
+# Restart the service
+sudo systemctl restart hrms.service
+
+# View logs
+sudo journalctl -u hrms.service
+```
+
+### Automatic Startup
+
+The service is configured to:
+- Start automatically when the server boots
+- Restart automatically if it crashes
+- Wait for MySQL to be available before starting
+- Run with proper system permissions
+
+### Troubleshooting
+
+1. If the service fails to start:
+```bash
+# Check the logs
+sudo journalctl -u hrms.service -n 50 --no-pager
+
+# Check service status
+sudo systemctl status hrms.service
+```
+
+2. If MySQL connection fails:
+```bash
+# Verify MySQL is running
+sudo systemctl status mysqld
+
+# Check MySQL logs
+sudo journalctl -u mysqld
+```
+
+3. Permission issues:
+```bash
+# Check file ownership
+ls -l /opt/hrms-unified
+
+# Fix permissions if needed
+sudo chown -R <service-user>:<service-user> /opt/hrms-unified
+```
+
 ## Utility Scripts
 
 The application comes with utility scripts to help manage the service and check prerequisites:
