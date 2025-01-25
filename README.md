@@ -1,44 +1,72 @@
 # HRMS Application
 
-A modern Human Resource Management System (HRMS) built with Node.js and React.
+A modern Human Resource Management System (HRMS) built with Node.js and React. This application provides comprehensive employee management features with a clean, intuitive interface.
 
 ## Features
 
-- Employee Management (CRUD operations)
-- Department Management with hierarchy support
-- User Type Management
-- Dashboard with data visualizations
-- Modern UI with Material-UI components
-- Detailed logging for debugging
+### Employee Management
+- Create, Read, Update, and Delete (CRUD) operations for employees
+- Advanced search functionality with multiple field filters
+- Automatic User ID generation
+- Manager assignment with hierarchy validation
+- Department assignment with visual hierarchy
+- User type management
+- Employee status tracking
+
+### Department Management
+- Hierarchical department structure
+- Visual indentation for department relationships
+- Department-wise employee grouping
+- Validation to prevent circular references
+
+### User Interface
+- Modern, responsive design using Material-UI
+- Interactive data grid with sorting and pagination
+- Real-time search and filtering
+- Success/Error notifications
+- Form validation with helpful messages
+- Mobile-friendly layout
+
+### Security & Validation
+- Input validation and sanitization
+- Error handling with detailed logging
+- Manager-subordinate relationship validation
+- Secure API endpoints
 
 ## Prerequisites
 
+Before you begin, ensure you have the following installed:
 - Node.js (v14 or higher)
-- MySQL/PostgreSQL (v8 or higher)
-- npm or yarn package manager
+- MySQL (v8 or higher)
+- npm (v6 or higher) or yarn
+- Git
 
-## Installation
+## Installation Guide
 
-1. Clone the repository:
+### 1. Clone the Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/rbaronia/hrms-unified.git
 cd hrms-unified
 ```
 
-2. Install dependencies:
+### 2. Database Setup
 ```bash
-# Install backend dependencies
-npm install
+# Log into MySQL and create the database
+mysql -u root -p
+CREATE DATABASE hrmsdb;
+exit;
 
-# Install frontend dependencies
-cd client && npm install && cd ..
+# Import the database schema and sample data
+cd db
+./reload_db.sh    # Make sure to make this file executable with: chmod +x reload_db.sh
+cd ..
 ```
 
-3. Configure the environment:
-Create a `.env` file in the root directory with the following content:
+### 3. Environment Configuration
+Create a `.env` file in the root directory:
 ```env
 # Database Configuration
-DB_HOST=your_database_host
+DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=hrmsdb
 DB_USER=your_username
@@ -48,112 +76,38 @@ DB_SSL_MODE=prefer
 # Server Configuration
 PORT=3000
 NODE_ENV=development
-
-# Logging Configuration
-LOG_LEVEL=info
 ```
 
-4. Create a MySQL/PostgreSQL database and run the following SQL scripts:
-```sql
-CREATE DATABASE hrmsdb;
-
-CREATE TABLE DEPARTMENT (
-    DEPTID INTEGER NOT NULL,
-    DEPTNAME VARCHAR(36) NOT NULL,
-    PARENTID INTEGER
-);
-
-CREATE TABLE USERTYPE (
-    TYPEID INTEGER NOT NULL,
-    TYPENAME VARCHAR(36) NOT NULL
-);
-
-CREATE TABLE EMPLOYEE (
-    ID INT AUTO_INCREMENT PRIMARY KEY,
-    FIRSTNAME VARCHAR(250) NOT NULL,
-    LASTNAME VARCHAR(250) NOT NULL,
-    STREETADDR VARCHAR(50),
-    CITY VARCHAR(50),
-    STATE VARCHAR(2),
-    ZIPCODE VARCHAR(50),
-    TITLE VARCHAR(50),
-    MANAGER VARCHAR(500),
-    ISMANAGER CHAR(1),
-    EDULEVEL VARCHAR(50),
-    STATUS CHAR(1) NOT NULL,
-    DEPTNAME VARCHAR(100),
-    USERTYPE VARCHAR(100),
-    USERID VARCHAR(50),
-    DATE_MODIFIED timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) AUTO_INCREMENT = 1;
-```
-
-## Running the Application
-
-### Development Mode
-Run both frontend and backend servers in development mode:
+### 4. Install Dependencies
 ```bash
+# Install backend dependencies
+npm install
+
+# Install frontend dependencies
+cd client
+npm install
+cd ..
+```
+
+### 5. Build the Frontend
+```bash
+cd client
+npm run build
+cd ..
+```
+
+### 6. Start the Application
+```bash
+# Development mode (runs both frontend and backend)
 npm run dev
+
+# Production mode
+npm start
 ```
-This will start:
-- Backend server on http://localhost:3000
-- Frontend development server on http://localhost:3001
 
-### Production Mode
-Build and start the production server:
-```bash
-npm run build && npm start
-```
-The application will be available at http://localhost:3000
-
-## Configuration Files
-
-### Database Configuration
-The application uses the following configuration files:
-
-1. `.env`: Environment variables for database connection, server settings, and logging
-2. `config/config.js`: Application configuration including database and logging settings
-3. `config/labels.js`: UI labels and text content
-
-### Database Connection Settings
-The application supports both MySQL and PostgreSQL with the following security settings:
-- SSL Mode support
-- Public Key Retrieval
-- Connection pooling
-
-## Features
-
-### Employee Management
-- View list of all employees
-- Add new employees
-- Edit existing employees
-- Delete employees
-- Automatic user ID generation based on name
-
-### Department Management
-- View department hierarchy
-- Add new departments
-- Edit department details
-- Delete departments (with validation)
-
-### User Type Management
-- View all user types
-- Add new user types
-- Edit user types
-- Delete user types (with validation)
-
-### Dashboard
-- Total employee count
-- Department distribution chart
-- User type distribution chart
-- Recent hires list
-
-## Logging
-
-The application uses Winston for logging:
-- File: `logs/hrms.log`
-- Console output (during development)
-- Log levels configurable via environment variables
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3000/api
 
 ## Project Structure
 ```
@@ -161,32 +115,69 @@ hrms-unified/
 ├── client/                 # React frontend
 │   ├── src/
 │   │   ├── components/    # React components
-│   │   ├── App.tsx       # Main App component
-│   │   └── index.tsx     # Entry point
-│   └── package.json
-├── config/                # Configuration files
-├── routes/               # API routes
-├── utils/                # Utility functions
-├── server.js            # Express server
-├── package.json
-└── .env                 # Environment variables
+│   │   ├── App.tsx        # Main App component
+│   │   └── index.tsx      # Entry point
+│   └── package.json       # Frontend dependencies
+├── db/                    # Database scripts
+│   ├── new_schema.sql     # Database schema
+│   └── sample_data.sql    # Sample data
+├── routes/                # Backend API routes
+├── utils/                 # Utility functions
+├── config/               # Configuration files
+└── server.js             # Backend entry point
 ```
 
-## Scripts
+## API Documentation
 
-- `npm run dev`: Start development servers (frontend + backend)
-- `npm start`: Start production server
-- `npm run build`: Build frontend for production
-- `npm test`: Run tests
+### Employee Endpoints
+- `GET /api/employees` - Get all employees
+- `GET /api/employees/:id` - Get employee by ID
+- `POST /api/employees` - Create new employee
+- `PUT /api/employees/:id` - Update employee
+- `DELETE /api/employees/:id` - Delete employee
+
+### Department Endpoints
+- `GET /api/employees/departments` - Get department hierarchy
+- `GET /api/employees/managers` - Get all managers
+- `GET /api/employees/usertypes` - Get all user types
+
+## Common Issues & Solutions
+
+### Database Connection Issues
+1. Ensure MySQL is running
+2. Verify database credentials in `.env`
+3. Check if database and tables exist
+4. Ensure proper privileges are granted to the database user
+
+### Build Issues
+1. Clear npm cache: `npm cache clean --force`
+2. Delete node_modules and reinstall: 
+```bash
+rm -rf node_modules
+rm -rf client/node_modules
+npm install
+cd client && npm install
+```
+
+### Runtime Issues
+1. Port conflicts: Change PORT in `.env`
+2. Memory issues: Increase Node.js memory limit
+```bash
+export NODE_OPTIONS=--max-old-space-size=4096
+```
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch
+2. Create a feature branch
 3. Commit your changes
 4. Push to the branch
-5. Create a new Pull Request
+5. Create a Pull Request
 
 ## License
 
-This project is licensed under the ISC License.
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For support, please create an issue in the GitHub repository or contact the maintainers.
