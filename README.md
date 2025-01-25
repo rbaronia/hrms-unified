@@ -50,17 +50,44 @@ cd hrms-unified
 ```
 
 ### 2. Database Setup
-```bash
-# Log into MySQL and create the database
-mysql -u root -p
-CREATE DATABASE hrmsdb;
-exit;
 
-# Import the database schema and sample data
-cd db
-./reload_db.sh    # Make sure to make this file executable with: chmod +x reload_db.sh
-cd ..
+You have two options to initialize the database:
+
+#### Option 1: Using the Initialization Script (Recommended)
+```bash
+# This will create the database, import schema and data
+mysql -u root -p < db/init.sql
 ```
+
+#### Option 2: Manual Setup
+```bash
+# Create the database
+mysql -u root -p
+mysql> CREATE DATABASE hrmsdb;
+mysql> exit
+
+# Import schema
+mysql -u root -p hrmsdb < db/schema.sql
+
+# Import data
+mysql -u root -p hrmsdb < db/data.sql
+```
+
+The database includes:
+- Department hierarchy with 33 departments
+- Employee table with sample records
+- User types and permissions
+- Pre-configured manager-subordinate relationships
+
+Default Database Configuration:
+```properties
+DB_HOST=localhost
+DB_PORT=3307
+DB_NAME=hrmsdb
+DB_USER=root
+```
+
+Note: Update the database connection settings in `config.properties` if your setup differs.
 
 ### 3. Environment Configuration
 Create a `.env` file in the root directory:
