@@ -34,6 +34,21 @@ stop_service() {
     fi
 }
 
+# Ensure client is built
+ensure_client_build() {
+    if [ ! -d "client/build" ]; then
+        echo "Client build directory not found. Building client..."
+        cd client
+        npm install
+        npm run build
+        if [ $? -ne 0 ]; then
+            echo "Client build failed"
+            exit 1
+        fi
+        cd ..
+    fi
+}
+
 # Build the application
 build_app() {
     echo "Building frontend..."
@@ -63,6 +78,9 @@ start_service() {
         echo "Service is already running on port $port"
         return 1
     fi
+
+    # Always ensure client is built before starting
+    ensure_client_build
 
     echo "Starting service..."
     if [ "$1" == "dev" ]; then

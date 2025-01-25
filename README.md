@@ -95,43 +95,49 @@ logging.level=info
 logging.file=logs/hrms.log
 ```
 
-### 4. Install Dependencies
+### 4. Install and Build
 ```bash
+# Install and build everything (recommended)
+./scripts/manage-service.sh build
+
+# Or manually:
 # Install backend dependencies
 npm install
 
-# Install frontend dependencies
+# Install and build frontend
 cd client
 npm install
+npm run build
 cd ..
 ```
 
-### 5. Available Scripts
+### 5. Start the Application
 
-#### Backend
+#### Using Service Management Script (Recommended)
 ```bash
-# Start the server in development mode
+# Start in development mode
+./scripts/manage-service.sh start-dev
+
+# Start in production mode
+./scripts/manage-service.sh start
+
+# Check status
+./scripts/manage-service.sh status
+
+# Stop the service
+./scripts/manage-service.sh stop
+```
+
+#### Manual Start
+```bash
+# Development mode (runs both frontend and backend)
 npm run dev
 
-# Start the server in production mode
+# Production mode
 npm start
 ```
 
-#### Frontend (in client directory)
-```bash
-# Start the frontend in development mode
-npm start
-
-# Build for production
-npm run build
-
-# Run tests
-npm test
-```
-
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:3000/api
+Note: The development mode requires the client to be built first. The service management script handles this automatically, but if you're running manually, make sure to build the client first.
 
 ## Utility Scripts
 
