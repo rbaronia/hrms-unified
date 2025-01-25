@@ -79,30 +79,20 @@ The database includes:
 - User types and permissions
 - Pre-configured manager-subordinate relationships
 
-Default Database Configuration:
+### 3. Configuration Setup
+Create a `config.properties` file in the root directory:
 ```properties
-DB_HOST=localhost
-DB_PORT=3307
-DB_NAME=hrmsdb
-DB_USER=root
-```
-
-Note: Update the database connection settings in `config.properties` if your setup differs.
-
-### 3. Environment Configuration
-Create a `.env` file in the root directory:
-```env
 # Database Configuration
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=hrmsdb
-DB_USER=your_username
-DB_PASSWORD=your_password
-DB_SSL_MODE=prefer
+db.jdbcUrl=jdbc:mysql://localhost:3307/hrmsdb?user=root&password=your_password&ssl=false
+db.queueLimit=0
 
 # Server Configuration
-PORT=3000
-NODE_ENV=development
+server.port=3000
+server.env=development
+
+# Logging Configuration
+logging.level=info
+logging.file=logs/hrms.log
 ```
 
 ### 4. Install Dependencies
@@ -116,20 +106,27 @@ npm install
 cd ..
 ```
 
-### 5. Build the Frontend
-```bash
-cd client
-npm run build
-cd ..
-```
+### 5. Available Scripts
 
-### 6. Start the Application
+#### Backend
 ```bash
-# Development mode (runs both frontend and backend)
+# Start the server in development mode
 npm run dev
 
-# Production mode
+# Start the server in production mode
 npm start
+```
+
+#### Frontend (in client directory)
+```bash
+# Start the frontend in development mode
+npm start
+
+# Build for production
+npm run build
+
+# Run tests
+npm test
 ```
 
 The application will be available at:
@@ -146,8 +143,9 @@ hrms-unified/
 │   │   └── index.tsx      # Entry point
 │   └── package.json       # Frontend dependencies
 ├── db/                    # Database scripts
-│   ├── new_schema.sql     # Database schema
-│   └── sample_data.sql    # Sample data
+│   ├── schema.sql        # Database schema
+│   ├── data.sql          # Sample data
+│   └── init.sql          # Database initialization
 ├── routes/                # Backend API routes
 ├── utils/                 # Utility functions
 ├── config/               # Configuration files
@@ -172,7 +170,7 @@ hrms-unified/
 
 ### Database Connection Issues
 1. Ensure MySQL is running
-2. Verify database credentials in `.env`
+2. Verify database credentials in `config.properties`
 3. Check if database and tables exist
 4. Ensure proper privileges are granted to the database user
 
@@ -187,7 +185,7 @@ cd client && npm install
 ```
 
 ### Runtime Issues
-1. Port conflicts: Change PORT in `.env`
+1. Port conflicts: Change port in `config.properties`
 2. Memory issues: Increase Node.js memory limit
 ```bash
 export NODE_OPTIONS=--max-old-space-size=4096
