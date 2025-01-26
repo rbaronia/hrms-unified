@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import labels from '../utils/labels';
 import { 
   Button, 
   Paper, 
@@ -97,107 +98,109 @@ const EmployeeList: React.FC = () => {
   };
 
   const columns: GridColDef[] = [
-    { field: 'userid', headerName: 'User ID', width: 130 },
-    { field: 'firstname', headerName: 'First Name', width: 130 },
-    { field: 'lastname', headerName: 'Last Name', width: 130 },
-    { field: 'title', headerName: 'Title', width: 200 },
+    { 
+      field: 'id', 
+      headerName: labels.tableHeaders.employee.id, 
+      width: 90 
+    },
+    {
+      field: 'name',
+      headerName: labels.tableHeaders.employee.name,
+      width: 200,
+      valueGetter: (params) => `${params.row.firstname} ${params.row.lastname}`
+    },
     { 
       field: 'deptname', 
-      headerName: 'Department', 
-      width: 400,
-      renderCell: (params) => (
-        <div style={{ 
-          whiteSpace: 'pre',
-          fontFamily: 'monospace',
-          fontSize: '14px'
-        }}>
-          {params.value}
-        </div>
-      )
+      headerName: labels.tableHeaders.employee.department, 
+      width: 200 
     },
-    { field: 'typename', headerName: 'User Type', width: 130 },
+    { 
+      field: 'title', 
+      headerName: labels.tableHeaders.employee.title, 
+      width: 200 
+    },
+    { 
+      field: 'typename', 
+      headerName: labels.tableHeaders.employee.type, 
+      width: 150 
+    },
     {
-      field: 'actions',
-      headerName: 'Actions',
-      width: 130,
-      sortable: false,
-      renderCell: (params) => (
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => navigate(`/employees/edit/${params.row.id}`)}
-        >
-          Edit
-        </Button>
-      ),
+      field: 'status',
+      headerName: labels.tableHeaders.employee.status,
+      width: 120,
+      valueGetter: (params) => 
+        params.row.status === '1' 
+          ? labels.statusOptions.active.label 
+          : labels.statusOptions.inactive.label
     },
+    {
+      field: 'date_modified',
+      headerName: labels.tableHeaders.employee.lastModified,
+      width: 200,
+      valueGetter: (params) => new Date(params.row.date_modified).toLocaleString()
+    }
   ];
 
   const filteredEmployees = getFilteredEmployees();
 
   return (
-    <Paper elevation={3} sx={{ p: 3, m: 3 }}>
-      <Box sx={{ mb: 3 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12}>
-            <Typography variant="h5" gutterBottom>
-              Employee List
-            </Typography>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Search employees..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth>
-              <InputLabel>Search In</InputLabel>
-              <Select
-                value={filterField}
-                onChange={(e) => setFilterField(e.target.value)}
-                label="Search In"
-              >
-                <MenuItem value="all">All Fields</MenuItem>
-                <MenuItem value="name">Name</MenuItem>
-                <MenuItem value="userid">User ID</MenuItem>
-                <MenuItem value="title">Title</MenuItem>
-                <MenuItem value="department">Department</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={12} md={5} sx={{ textAlign: 'right' }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => navigate('/employees/new')}
-            >
-              Add Employee
-            </Button>
-          </Grid>
-        </Grid>
+    <Paper elevation={3} sx={{ p: 3, m: 2 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h5" component="h2">
+          {labels.dashboard.title}
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={() => navigate('/employees/new')}
+        >
+          {labels.buttons.save}
+        </Button>
       </Box>
+
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            placeholder={labels.buttons.search}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth>
+            <InputLabel>Filter By</InputLabel>
+            <Select
+              value={filterField}
+              onChange={(e) => setFilterField(e.target.value)}
+              label="Filter By"
+            >
+              <MenuItem value="all">All Fields</MenuItem>
+              <MenuItem value="name">Name</MenuItem>
+              <MenuItem value="department">Department</MenuItem>
+              <MenuItem value="title">Title</MenuItem>
+              <MenuItem value="type">Type</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
+
       <div style={{ height: 600, width: '100%' }}>
         <DataGrid
           rows={filteredEmployees}
           columns={columns}
-          initialState={{
-            pagination: {
-              paginationModel: { pageSize: 10 }
-            },
-          }}
-          pageSizeOptions={[10]}
-          disableRowSelectionOnClick
+          pageSize={10}
+          rowsPerPageOptions={[10]}
+          checkboxSelection
+          disableSelectionOnClick
           loading={loading}
         />
       </div>

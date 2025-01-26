@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import labels from '../utils/labels';
 import {
   Button,
   TextField,
@@ -299,274 +300,275 @@ const EmployeeForm: React.FC = () => {
   };
 
   return (
-    <>
-      {apiError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {apiError}
-        </Alert>
-      )}
-      {successMessage && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {successMessage}
-        </Alert>
-      )}
-      <Paper elevation={3} sx={{ p: 3, m: 3 }}>
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h5" gutterBottom>
-            {id ? 'Edit Employee' : 'Add New Employee'}
-          </Typography>
-        </Box>
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="First Name"
-                name="firstname"
-                value={formData.firstname}
-                onChange={handleTextFieldChange}
-                required
-                error={!!formErrors.firstname}
-                helperText={formErrors.firstname}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Last Name"
-                name="lastname"
-                value={formData.lastname}
-                onChange={handleTextFieldChange}
-                required
-                error={!!formErrors.lastname}
-                helperText={formErrors.lastname}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="User ID"
-                value={userId}
-                InputProps={{
-                  readOnly: true,
-                }}
-                helperText="Automatically generated from first and last name"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Street Address"
-                name="streetaddr"
-                value={formData.streetaddr}
-                onChange={handleTextFieldChange}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="City"
-                name="city"
-                value={formData.city}
-                onChange={handleTextFieldChange}
-              />
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <TextField
-                fullWidth
-                label="State"
-                name="state"
-                value={formData.state}
-                onChange={handleTextFieldChange}
-              />
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <TextField
-                fullWidth
-                label="ZIP Code"
-                name="zipcode"
-                value={formData.zipcode}
-                onChange={handleTextFieldChange}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Title"
-                name="title"
-                value={formData.title}
-                onChange={handleTextFieldChange}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Manager</InputLabel>
-                <Select<string>
-                  name="manager"
-                  value={formData.manager}
-                  onChange={handleSelectChange}
-                  label="Manager"
-                >
-                  <MenuItem value="">
-                    <em>None</em>
+    <Paper elevation={3} sx={{ p: 3, m: 2 }}>
+      <Box display="flex" alignItems="center" mb={3}>
+        <Button startIcon={<ArrowBack />} onClick={() => navigate('/employees')}>
+          {labels.buttons.cancel}
+        </Button>
+        <Typography variant="h5" component="h2" ml={2}>
+          {id ? labels.employee.title + ' - ' + formData.firstname + ' ' + formData.lastname : 'New Employee'}
+        </Typography>
+      </Box>
+
+      {apiError && <Alert severity="error" sx={{ mb: 2 }}>{apiError}</Alert>}
+      
+      <form onSubmit={handleSubmit}>
+        <Grid container spacing={3}>
+          {/* Basic Information Section */}
+          <Grid item xs={12}>
+            <Typography variant="h6">{labels.formSections.basicInfo}</Typography>
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <TextField
+              required
+              fullWidth
+              label={labels.employee.firstName}
+              name="firstname"
+              value={formData.firstname}
+              onChange={handleTextFieldChange}
+              error={!!formErrors.firstname}
+              helperText={formErrors.firstname || labels.employee.validations.firstName}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <TextField
+              required
+              fullWidth
+              label={labels.employee.lastName}
+              name="lastname"
+              value={formData.lastname}
+              onChange={handleTextFieldChange}
+              error={!!formErrors.lastname}
+              helperText={formErrors.lastname || labels.employee.validations.lastName}
+            />
+          </Grid>
+
+          {/* Contact Information Section */}
+          <Grid item xs={12}>
+            <Typography variant="h6">{labels.formSections.contactInfo}</Typography>
+          </Grid>
+          
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label={labels.employee.streetAddr}
+              name="streetaddr"
+              value={formData.streetaddr}
+              onChange={handleTextFieldChange}
+              error={!!formErrors.streetaddr}
+              helperText={formErrors.streetaddr || labels.employee.validations.streetAddr}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label={labels.employee.city}
+              name="city"
+              value={formData.city}
+              onChange={handleTextFieldChange}
+              error={!!formErrors.city}
+              helperText={formErrors.city || labels.employee.validations.city}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={3}>
+            <TextField
+              fullWidth
+              label={labels.employee.state}
+              name="state"
+              value={formData.state}
+              onChange={handleTextFieldChange}
+              error={!!formErrors.state}
+              helperText={formErrors.state || labels.employee.validations.state}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={3}>
+            <TextField
+              fullWidth
+              label={labels.employee.zipCode}
+              name="zipcode"
+              value={formData.zipcode}
+              onChange={handleTextFieldChange}
+              error={!!formErrors.zipcode}
+              helperText={formErrors.zipcode || labels.employee.validations.zipCode}
+            />
+          </Grid>
+
+          {/* Job Information Section */}
+          <Grid item xs={12}>
+            <Typography variant="h6">{labels.formSections.jobInfo}</Typography>
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel>{labels.employee.deptId}</InputLabel>
+              <Select
+                value={formData.deptid}
+                name="deptid"
+                onChange={handleSelectChange}
+                label={labels.employee.deptId}
+              >
+                {departments.map((dept) => (
+                  <MenuItem key={dept.deptid} value={dept.deptid.toString()}>
+                    {dept.deptname}
                   </MenuItem>
-                  {managers.map((manager) => (
-                    <MenuItem key={manager.userid} value={manager.userid}>
-                      {`${manager.firstname} ${manager.lastname} (${manager.userid})`}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Education Level"
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel>{labels.employee.typeId}</InputLabel>
+              <Select
+                value={formData.typeid}
+                name="typeid"
+                onChange={handleSelectChange}
+                label={labels.employee.typeId}
+              >
+                {userTypes.map((type) => (
+                  <MenuItem key={type.typeid} value={type.typeid.toString()}>
+                    {type.typename}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label={labels.employee.title}
+              name="title"
+              value={formData.title}
+              onChange={handleTextFieldChange}
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel>{labels.employee.manager}</InputLabel>
+              <Select
+                value={formData.manager || ''}
+                name="manager"
+                onChange={handleSelectChange}
+                label={labels.employee.manager}
+              >
+                {managers.map((manager) => (
+                  <MenuItem key={manager.id} value={manager.userid}>
+                    {`${manager.firstname} ${manager.lastname}`}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <FormControl>
+              <FormLabel>{labels.employee.isManager}</FormLabel>
+              <RadioGroup
+                row
+                name="ismanager"
+                value={formData.ismanager}
+                onChange={handleCheckboxChange}
+              >
+                <FormControlLabel
+                  value={labels.managerOptions.yes.value}
+                  control={<Radio />}
+                  label={labels.managerOptions.yes.label}
+                />
+                <FormControlLabel
+                  value={labels.managerOptions.no.value}
+                  control={<Radio />}
+                  label={labels.managerOptions.no.label}
+                />
+              </RadioGroup>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel>{labels.employee.eduLevel}</InputLabel>
+              <Select
+                value={formData.edulevel || ''}
                 name="edulevel"
-                value={formData.edulevel}
+                onChange={handleSelectChange}
+                label={labels.employee.eduLevel}
+              >
+                {labels.eduLevelOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <FormControl>
+              <FormLabel>{labels.employee.status}</FormLabel>
+              <RadioGroup
+                row
+                name="status"
+                value={formData.status}
                 onChange={handleTextFieldChange}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth error={!!formErrors.deptid}>
-                <InputLabel>Department</InputLabel>
-                <Select<string>
-                  name="deptid"
-                  value={formData.deptid}
-                  onChange={handleSelectChange}
-                  label="Department"
-                  required
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        maxHeight: 48 * 4.5
-                      }
-                    }
-                  }}
-                >
-                  <MenuItem value="">
-                    <em>None</em>
-                  </MenuItem>
-                  {departments.map((dept) => (
-                    <MenuItem 
-                      key={dept.deptid} 
-                      value={dept.deptid.toString()}
-                      sx={{ 
-                        whiteSpace: 'pre',
-                        fontFamily: 'monospace',
-                        fontSize: '14px'
-                      }}
-                    >
-                      {dept.deptname}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {formErrors.deptid && (
-                  <FormHelperText>{formErrors.deptid}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth error={!!formErrors.typeid}>
-                <InputLabel>User Type</InputLabel>
-                <Select<string>
-                  name="typeid"
-                  value={formData.typeid}
-                  onChange={handleSelectChange}
-                  label="User Type"
-                  required
-                >
-                  <MenuItem value="">
-                    <em>None</em>
-                  </MenuItem>
-                  {userTypes.map((type) => (
-                    <MenuItem key={type.typeid} value={type.typeid.toString()}>
-                      {type.typename}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {formErrors.typeid && (
-                  <FormHelperText>{formErrors.typeid}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl component="fieldset">
-                <FormLabel>User Status</FormLabel>
-                <RadioGroup
-                  row
-                  name="status"
-                  value={formData.status}
-                  onChange={handleTextFieldChange}
-                >
-                  <FormControlLabel
-                    value="0"
-                    control={<Radio />}
-                    label="Active"
-                  />
-                  <FormControlLabel
-                    value="1"
-                    control={<Radio />}
-                    label="Disabled"
-                  />
-                  <FormControlLabel
-                    value="2"
-                    control={<Radio />}
-                    label="Terminated"
-                  />
-                </RadioGroup>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    name="ismanager"
-                    checked={formData.ismanager === '1'}
-                    onChange={handleCheckboxChange}
-                  />
-                }
-                label="Is Manager"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                >
-                  {id ? 'Save Changes' : 'Create Employee'}
-                </Button>
-                {id && (
-                  <Button
-                    variant="contained"
-                    color="error"
-                    fullWidth
-                    onClick={handleDelete}
-                  >
-                    Delete Employee
-                  </Button>
-                )}
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
+              >
+                <FormControlLabel
+                  value={labels.statusOptions.active.value}
+                  control={<Radio />}
+                  label={labels.statusOptions.active.label}
+                />
+                <FormControlLabel
+                  value={labels.statusOptions.inactive.value}
+                  control={<Radio />}
+                  label={labels.statusOptions.inactive.label}
+                />
+              </RadioGroup>
+            </FormControl>
+          </Grid>
+
+          {/* System Information Section */}
+          <Grid item xs={12}>
+            <Typography variant="h6">{labels.formSections.systemInfo}</Typography>
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <TextField
+              required
+              fullWidth
+              label={labels.employee.userId}
+              value={userId}
+              InputProps={{
+                readOnly: true,
+              }}
+              helperText="Automatically generated from first and last name"
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <Box display="flex" justifyContent="flex-end" gap={2}>
               <Button
                 variant="outlined"
-                color="secondary"
-                fullWidth
                 onClick={() => navigate('/employees')}
-                startIcon={<ArrowBack />}
-                sx={{ mt: 2 }}
               >
-                Back to Employees
+                {labels.buttons.cancel}
               </Button>
-            </Grid>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+              >
+                {id ? labels.buttons.update : labels.buttons.save}
+              </Button>
+            </Box>
           </Grid>
-        </form>
-      </Paper>
-    </>
+        </Grid>
+      </form>
+    </Paper>
   );
 };
 

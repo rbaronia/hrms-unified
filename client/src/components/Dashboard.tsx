@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import labels from '../utils/labels';
 import {
   Grid,
   Paper,
@@ -94,62 +95,75 @@ const Dashboard: React.FC = () => {
   }, []);
 
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={3} sx={{ p: 3 }}>
       <Grid item xs={12}>
-        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          {labels.dashboard.title}
+        </Typography>
+      </Grid>
+
+      {/* Total Employees Card */}
+      <Grid item xs={12} md={6} lg={3}>
+        <Paper elevation={3} sx={{ p: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Total Employees: {data.totalEmployees}
+            {labels.dashboard.totalEmployees}
+          </Typography>
+          <Typography variant="h3">
+            {data.totalEmployees}
           </Typography>
         </Paper>
       </Grid>
 
+      {/* Department Distribution */}
       <Grid item xs={12} md={6}>
-        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 300 }}>
+        <Paper elevation={3} sx={{ p: 3, height: '400px' }}>
           <Typography variant="h6" gutterBottom>
-            Department Distribution
+            {labels.dashboard.departmentDistribution}
           </Typography>
-          <ResponsiveContainer>
+          <ResponsiveContainer width="100%" height="90%">
             <BarChart data={data.departmentDistribution}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="value" fill="#8884d8" name="Employees" />
+              <Bar dataKey="value" fill="#8884d8" />
             </BarChart>
           </ResponsiveContainer>
         </Paper>
       </Grid>
 
+      {/* User Type Distribution */}
       <Grid item xs={12} md={6}>
-        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 300 }}>
+        <Paper elevation={3} sx={{ p: 3, height: '400px' }}>
           <Typography variant="h6" gutterBottom>
-            User Type Distribution
+            {labels.dashboard.userTypeDistribution}
           </Typography>
-          <ResponsiveContainer>
+          <ResponsiveContainer width="100%" height="90%">
             <BarChart data={data.userTypeDistribution}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="value" fill="#82ca9d" name="Employees" />
+              <Bar dataKey="value" fill="#82ca9d" />
             </BarChart>
           </ResponsiveContainer>
         </Paper>
       </Grid>
 
-      <Grid item xs={12}>
-        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+      {/* Recent Hires */}
+      <Grid item xs={12} md={6}>
+        <Paper elevation={3} sx={{ p: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Recent Hires
+            {labels.dashboard.recentHires}
           </Typography>
           <List>
             {data.recentHires.map((employee) => (
               <ListItem key={employee.id}>
                 <ListItemText
                   primary={`${employee.firstname} ${employee.lastname}`}
-                  secondary={`Department: ${employee.deptname || 'Unassigned'} | User Type: ${employee.usertype || 'Unassigned'}`}
+                  secondary={`${employee.deptname} - ${new Date(employee.date_modified).toLocaleDateString()}`}
                 />
               </ListItem>
             ))}
