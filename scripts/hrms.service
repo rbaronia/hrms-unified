@@ -6,9 +6,9 @@ Wants=mysql.service
 [Service]
 Type=simple
 User=<your-user>
-WorkingDirectory=/opt/hrms-unified
+WorkingDirectory=/home/<your-user>/hrms-unified
 ExecStart=/usr/bin/npm start
-ExecStop=/usr/bin/npm stop
+ExecStop=/usr/bin/npm run stop
 Restart=always
 RestartSec=10
 StandardOutput=syslog
