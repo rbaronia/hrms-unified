@@ -10,7 +10,8 @@
     "test": "jest",
     "test-db": "node utils/test-db.js",
     "install-all": "npm install && cd client && npm install",
-    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm run build"
+    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm run build",
+    "stop": "pkill -f 'node server.js'"
   },
   "keywords": ["hrms", "react", "nodejs", "mysql"],
   "author": "",
