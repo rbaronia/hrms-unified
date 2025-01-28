@@ -4,7 +4,7 @@ echo "Checking prerequisites for HRMS application..."
 
 # Function to check if a command exists
 check_command() {
-    if ! command -v $1 &> /dev/null; then
+    if ! command -v "$1" &> /dev/null; then
         echo "❌ $2 is not installed"
         return 1
     else
@@ -16,10 +16,10 @@ check_command() {
 
 # Function to check if a systemd service is installed and running
 check_service() {
-    local service=$1
+    local service="$1"
     if systemctl list-unit-files | grep -q "^$service"; then
         echo "✅ $service service is installed"
-        if systemctl is-active --quiet $service; then
+        if systemctl is-active --quiet "$service"; then
             echo "✅ $service service is running"
             return 0
         else
@@ -36,15 +36,16 @@ check_service() {
 get_mysql_credentials() {
     if [ ! -f ".env" ]; then
         echo "localhost 3306 hrmsuser ''"
-        return
-    }
+        return 0
+    fi
     
+    # shellcheck source=/dev/null
     source .env
     
-    local host=${DB_HOST:-localhost}
-    local port=${DB_PORT:-3306}
-    local user=${DB_USER:-hrmsuser}
-    local pass=${DB_PASSWORD:-""}
+    local host="${DB_HOST:-localhost}"
+    local port="${DB_PORT:-3306}"
+    local user="${DB_USER:-hrmsuser}"
+    local pass="${DB_PASSWORD:-}"
     
     echo "$host $port $user $pass"
 }
@@ -56,13 +57,13 @@ check_mysql() {
     fi
     
     # Get MySQL credentials
-    read host port user pass <<< $(get_mysql_credentials)
+    read -r host port user pass <<< "$(get_mysql_credentials)"
     
     # Try to connect to MySQL
-    if mysql -h $host -P $port -u $user -p"$pass" -e "SELECT 1" &> /dev/null; then
+    if mysql -h "$host" -P "$port" -u "$user" -p"$pass" -e "SELECT 1" &> /dev/null; then
         echo "✅ MySQL connection successful"
         # Check if database exists
-        if mysql -h $host -P $port -u $user -p"$pass" -e "USE hrmsdb" &> /dev/null; then
+        if mysql -h "$host" -P "$port" -u "$user" -p"$pass" -e "USE hrmsdb" &> /dev/null; then
             echo "✅ Database 'hrmsdb' exists"
         else
             echo "❌ Database 'hrmsdb' does not exist"
@@ -77,7 +78,8 @@ check_mysql() {
 # Function to check SELinux status
 check_selinux() {
     if command -v getenforce &> /dev/null; then
-        local status=$(getenforce)
+        local status
+        status=$(getenforce)
         echo "✅ SELinux is $status"
         if [ "$status" = "Enforcing" ]; then
             # Check required SELinux booleans
