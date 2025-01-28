@@ -1,12 +1,9 @@
 const winston = require('winston');
 const path = require('path');
-const PropertiesReader = require('properties-reader');
-
-// Load configuration from properties file
-const properties = PropertiesReader(path.resolve(__dirname, '../config.properties'));
+const config = require('../config');
 
 const logger = winston.createLogger({
-    level: properties.get('logging.level') || 'info',
+    level: config.logging.level,
     format: winston.format.combine(
         winston.format.timestamp({
             format: 'YYYY-MM-DD HH:mm:ss'
@@ -17,14 +14,32 @@ const logger = winston.createLogger({
     ),
     defaultMeta: { service: 'hrms-service' },
     transports: [
+        // Console transport
         new winston.transports.Console({
             format: winston.format.combine(
                 winston.format.colorize(),
                 winston.format.simple()
             )
+        }),
+        // File transport
+        new winston.transports.File({
+            filename: config.logging.file,
+            format: winston.format.combine(
+                winston.format.timestamp(),
+                winston.format.json()
+            ),
+            maxsize: 5242880, // 5MB
+            maxFiles: 5,
         })
     ]
 });
+
+// Ensure log directory exists
+const fs = require('fs');
+const logDir = path.dirname(config.logging.file);
+if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+}
 
 // Create a stream object for Morgan middleware
 logger.stream = {

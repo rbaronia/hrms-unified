@@ -1,0 +1,26 @@
+-- Disable foreign key checks temporarily
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Drop all foreign key constraints from EMPLOYEE table
+SELECT CONCAT('ALTER TABLE EMPLOYEE DROP FOREIGN KEY ', CONSTRAINT_NAME, ';')
+INTO @sql
+FROM information_schema.KEY_COLUMN_USAGE
+WHERE TABLE_SCHEMA = 'hrmsdb'
+  AND TABLE_NAME = 'EMPLOYEE'
+  AND REFERENCED_TABLE_NAME IS NOT NULL;
+
+SET @sql = IFNULL(@sql, 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Rename EMPLOYEE table to USER
+RENAME TABLE `EMPLOYEE` TO `USER`;
+
+-- Add new foreign key constraints to USER table
+ALTER TABLE `USER`
+ADD CONSTRAINT `USER_ibfk_1` FOREIGN KEY (`DEPTID`) REFERENCES `DEPARTMENT` (`DEPTID`),
+ADD CONSTRAINT `USER_ibfk_2` FOREIGN KEY (`TYPEID`) REFERENCES `USERTYPE` (`TYPEID`);
+
+-- Re-enable foreign key checks
+SET FOREIGN_KEY_CHECKS = 1;

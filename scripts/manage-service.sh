@@ -1,143 +1,188 @@
 #!/bin/bash
 
-# Get the server port from config.properties
-get_port() {
-    local port=$(grep "^server.port=" config.properties | cut -d'=' -f2)
-    echo ${port:-3000}  # Default to 3000 if not found
-}
+# Configuration
+APP_NAME="hrms"
+APP_DIR="/opt/hrms-unified"
+SERVICE_FILE="/etc/systemd/system/$APP_NAME.service"
+ENV_FILE="$APP_DIR/.env"
 
-# Check if node_modules exists and is up to date
-check_node_modules() {
-    local dir=$1
-    local package_json="$dir/package.json"
-    local node_modules="$dir/node_modules"
-    
-    if [ ! -d "$node_modules" ]; then
-        return 1
+# Load environment variables if exists
+[ -f "$ENV_FILE" ] && source "$ENV_FILE"
+
+# Default values
+PORT=${PORT:-3000}
+NODE_ENV=${NODE_ENV:-production}
+
+# Helper function to check if running as root
+check_root() {
+    if [ "$(id -u)" != "0" ]; then
+        echo "This script must be run as root" 1>&2
+        exit 1
     fi
-    
-    if [ "$package_json" -nt "$node_modules" ]; then
-        return 1
-    fi
-    
-    return 0
 }
 
 # Check if the service is running
 check_service() {
-    local port=$(get_port)
-    if lsof -i :$port > /dev/null; then
+    if systemctl is-active --quiet $APP_NAME; then
         return 0  # Service is running
     else
         return 1  # Service is not running
     fi
 }
 
-# Stop the service
-stop_service() {
-    local port=$(get_port)
-    local pid=$(lsof -t -i:$port)
-    if [ ! -z "$pid" ]; then
-        echo "Stopping service on port $port (PID: $pid)..."
-        kill $pid
-        sleep 2
-        if check_service; then
-            echo "Service didn't stop gracefully, forcing..."
-            kill -9 $pid
-        fi
-        echo "Service stopped"
-    else
-        echo "No service running on port $port"
-    fi
-}
-
-# Ensure client is built
-ensure_client_build() {
-    if [ ! -d "client/build" ] || [ "client/src" -nt "client/build" ]; then
-        echo "Client needs to be built..."
-        cd client
-        
-        echo "📦 Checking frontend dependencies..."
-        if ! check_node_modules "."; then
-            echo "Installing frontend dependencies..."
-            npm install --no-audit --no-fund
-        else
-            echo "Frontend dependencies are up to date"
-        fi
-        
-        echo "🏗️  Building frontend..."
-        DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false npm run build
-        if [ $? -ne 0 ]; then
-            echo "❌ Client build failed"
-            exit 1
-        fi
-        echo "✅ Frontend built successfully"
-        cd ..
-    else
-        echo "✅ Client build is up to date"
-    fi
-}
-
-# Build the application
+# Install dependencies and build the application
 build_app() {
-    # First check backend dependencies
-    echo "📦 Checking backend dependencies..."
-    if ! check_node_modules "."; then
-        echo "Installing backend dependencies..."
-        npm install --no-audit --no-fund
-    else
-        echo "Backend dependencies are up to date"
-    fi
-
-    # Then build frontend
-    echo "🏗️  Building frontend..."
-    cd client
-    if ! check_node_modules "."; then
-        echo "Installing frontend dependencies..."
-        npm install --no-audit --no-fund
-    else
-        echo "Frontend dependencies are up to date"
+    echo "Building application..."
+    
+    # Install server dependencies
+    if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules" ]; then
+        echo "Installing server dependencies..."
+        npm install
     fi
     
-    echo "Building frontend application..."
-    DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false npm run build
-    if [ $? -ne 0 ]; then
-        echo "❌ Frontend build failed"
-        exit 1
+    # Build client
+    cd client
+    if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules" ]; then
+        echo "Installing client dependencies..."
+        npm install
     fi
+    
+    echo "Building client..."
+    npm run build
     cd ..
+    
+    # Create default .env if it doesn't exist
+    if [ ! -f ".env" ]; then
+        echo "Creating default .env..."
+        cat > .env << EOL
+# Database Configuration
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=hrmsuser
+DB_PASSWORD=your_secure_password
+DB_NAME=hrmsdb
 
-    echo "✅ Build completed successfully"
+# Server Configuration
+PORT=3000
+NODE_ENV=production
+
+# Security
+JWT_SECRET=your_jwt_secret_key
+CORS_ORIGIN=http://localhost:3000
+EOL
+    fi
+    
+    echo "Build complete"
+}
+
+# Install the service
+install_service() {
+    check_root
+    
+    echo "Installing $APP_NAME service..."
+    
+    # Create system user if it doesn't exist
+    if ! id -u "$APP_NAME" >/dev/null 2>&1; then
+        useradd -r -s /bin/false "$APP_NAME"
+    fi
+    
+    # Create service directory
+    mkdir -p "$APP_DIR"
+    
+    # Copy application files
+    cp -r . "$APP_DIR"
+    
+    # Set permissions
+    chown -R $APP_NAME:$APP_NAME "$APP_DIR"
+    chmod -R 755 "$APP_DIR"
+    
+    # Create service file
+    cat > "$SERVICE_FILE" << EOL
+[Unit]
+Description=HRMS Application
+After=network.target mysqld.service
+
+[Service]
+Type=simple
+User=$APP_NAME
+WorkingDirectory=$APP_DIR
+ExecStart=/usr/bin/npm start
+Restart=always
+Environment=NODE_ENV=$NODE_ENV
+Environment=PORT=$PORT
+
+[Install]
+WantedBy=multi-user.target
+EOL
+    
+    # Reload systemd
+    systemctl daemon-reload
+    
+    echo "Service installed successfully"
 }
 
 # Start the service
 start_service() {
-    local port=$(get_port)
+    check_root
+    
     if check_service; then
-        echo "Service is already running on port $port"
-        return 1
-    fi
-
-    # Always ensure client is built before starting
-    ensure_client_build
-
-    echo "🚀 Starting service..."
-    if [ "$1" == "dev" ]; then
-        NODE_ENV=development npm run dev
+        echo "Service is already running"
     else
-        NODE_ENV=production npm start
+        echo "Starting service..."
+        systemctl start $APP_NAME
+        
+        # Wait for service to start
+        sleep 2
+        if check_service; then
+            echo "Service started successfully"
+        else
+            echo "Failed to start service. Check logs with: journalctl -u $APP_NAME -f"
+            exit 1
+        fi
     fi
 }
 
-# Show status
-show_status() {
-    local port=$(get_port)
+# Stop the service
+stop_service() {
+    check_root
+    
     if check_service; then
-        local pid=$(lsof -t -i:$port)
-        echo "✅ Service is running on port $port (PID: $pid)"
+        echo "Stopping service..."
+        systemctl stop $APP_NAME
+        
+        # Wait for service to stop
+        sleep 2
+        if ! check_service; then
+            echo "Service stopped successfully"
+        else
+            echo "Failed to stop service. Check logs with: journalctl -u $APP_NAME -f"
+            exit 1
+        fi
     else
-        echo "❌ Service is not running"
+        echo "Service is not running"
     fi
+}
+
+# Restart the service
+restart_service() {
+    check_root
+    
+    echo "Restarting service..."
+    systemctl restart $APP_NAME
+    
+    # Wait for service to restart
+    sleep 2
+    if check_service; then
+        echo "Service restarted successfully"
+    else
+        echo "Failed to restart service. Check logs with: journalctl -u $APP_NAME -f"
+        exit 1
+    fi
+}
+
+# Show service status
+show_status() {
+    systemctl status $APP_NAME
 }
 
 # Main script
@@ -145,28 +190,25 @@ case "$1" in
     "build")
         build_app
         ;;
+    "install")
+        install_service
+        ;;
     "start")
         start_service
-        ;;
-    "start-dev")
-        start_service "dev"
         ;;
     "stop")
         stop_service
         ;;
     "restart")
-        stop_service
-        start_service
-        ;;
-    "restart-dev")
-        stop_service
-        start_service "dev"
+        restart_service
         ;;
     "status")
         show_status
         ;;
     *)
-        echo "Usage: $0 {build|start|start-dev|stop|restart|restart-dev|status}"
+        echo "Usage: $0 {build|install|start|stop|restart|status}"
         exit 1
         ;;
 esac
+
+exit 0

@@ -7,14 +7,15 @@ Wants=mysql.service
 Type=simple
 User=<your-user>
 WorkingDirectory=/home/<your-user>/hrms-unified
-ExecStart=/usr/bin/npm start
+ExecStart=/usr/bin/npm run start:prod
 ExecStop=/usr/bin/npm run stop
 Restart=always
 RestartSec=10
-StandardOutput=syslog
-StandardError=syslog
+StandardOutput=journal
+StandardError=journal
 SyslogIdentifier=hrms-app
 Environment=NODE_ENV=production
+Environment=NODE_OPTIONS=--openssl-legacy-provider
 Environment=HOME=/home/<your-user>
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
 

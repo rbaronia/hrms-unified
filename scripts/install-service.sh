@@ -7,8 +7,8 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # Get the username to run the service
-read -p "Enter the username to run the HRMS service [ibmdemo]: " SERVICE_USER
-SERVICE_USER=${SERVICE_USER:-ibmdemo}
+read -p "Enter the username to run the HRMS service [$(whoami)]: " SERVICE_USER
+SERVICE_USER=${SERVICE_USER:-$(whoami)}
 
 # Verify the user exists
 if ! id "$SERVICE_USER" >/dev/null 2>&1; then
@@ -28,11 +28,30 @@ if [ ! -d "$INSTALL_DIR" ]; then
     exit 1
 fi
 
+# Check if Node.js and npm are installed
+if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+    echo "Error: Node.js and npm are required but not installed"
+    exit 1
+fi
+
+# Install dependencies
+echo "Installing dependencies..."
+cd "$INSTALL_DIR"
+sudo -u "$SERVICE_USER" npm install
+sudo -u "$SERVICE_USER" cd client && npm install
+cd -
+
+# Build the client
+echo "Building client..."
+cd "$INSTALL_DIR/client"
+sudo -u "$SERVICE_USER" npm run build
+cd -
+
 # Set ownership
 chown -R $SERVICE_USER:$SERVICE_USER $INSTALL_DIR
 
 # Update service file with correct user and path
-sed -i "s/<your-user>/$SERVICE_USER/" hrms.service
+sed -i "s/<your-user>/$SERVICE_USER/g" hrms.service
 sed -i "s|/opt/hrms-unified|$INSTALL_DIR|" hrms.service
 
 # Copy service file
@@ -44,6 +63,7 @@ systemctl daemon-reload
 # Enable the service
 systemctl enable hrms.service
 
-echo "Installation complete. The service will start automatically on boot."
-echo "To start it now, run: systemctl start hrms.service"
+echo "Installation complete!"
+echo "To start the service now, run: systemctl start hrms.service"
 echo "To check status, run: systemctl status hrms.service"
+echo "To view logs, run: journalctl -u hrms.service -f"

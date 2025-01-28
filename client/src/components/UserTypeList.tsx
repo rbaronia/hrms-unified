@@ -9,10 +9,16 @@ import {
   DialogActions,
   TextField,
   Box,
+  Table,
+  TableContainer,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
 } from '@mui/material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import axios from 'axios';
+import labels from '../utils/labels';
 
 interface UserType {
   typeid: number;
@@ -22,10 +28,10 @@ interface UserType {
 const UserTypeList: React.FC = () => {
   const [userTypes, setUserTypes] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [editingUserType, setEditingUserType] = useState<UserType | null>(null);
+  const [open, setOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [selectedUserType, setSelectedUserType] = useState<UserType | null>(null);
   const [formData, setFormData] = useState({
-    typeid: '',
     typename: '',
   });
 
@@ -35,7 +41,7 @@ const UserTypeList: React.FC = () => {
 
   const fetchUserTypes = async () => {
     try {
-      const response = await axios.get('/api/employees/userTypes');
+      const response = await axios.get('/api/userTypes');
       setUserTypes(response.data);
       setLoading(false);
     } catch (error) {
@@ -44,151 +50,122 @@ const UserTypeList: React.FC = () => {
     }
   };
 
-  const handleOpenDialog = (userType?: UserType) => {
-    if (userType) {
-      setEditingUserType(userType);
-      setFormData({
-        typeid: userType.typeid.toString(),
-        typename: userType.typename,
-      });
-    } else {
-      setEditingUserType(null);
-      setFormData({
-        typeid: '',
-        typename: '',
-      });
-    }
-    setOpenDialog(true);
+  const handleOpen = () => {
+    setOpen(true);
+    setEditMode(false);
+    setFormData({ typename: '' });
   };
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setEditingUserType(null);
-    setFormData({
-      typeid: '',
-      typename: '',
-    });
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedUserType(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (editingUserType) {
-        await axios.put(`/api/employees/userTypes/${editingUserType.typeid}`, {
-          typename: formData.typename,
-        });
+      if (editMode && selectedUserType) {
+        await axios.put(`/api/userTypes/${selectedUserType.typeid}`, formData);
       } else {
-        await axios.post('/api/employees/userTypes', {
-          typeid: parseInt(formData.typeid),
-          typename: formData.typename,
-        });
+        await axios.post('/api/userTypes', formData);
       }
-      handleCloseDialog();
       fetchUserTypes();
+      handleClose();
     } catch (error) {
       console.error('Error saving user type:', error);
     }
   };
 
+  const handleEdit = (userType: UserType) => {
+    setSelectedUserType(userType);
+    setFormData({ typename: userType.typename });
+    setEditMode(true);
+    setOpen(true);
+  };
+
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this user type?')) {
-      try {
-        await axios.delete(`/api/employees/userTypes/${id}`);
-        fetchUserTypes();
-      } catch (error) {
-        console.error('Error deleting user type:', error);
-      }
+    try {
+      await axios.delete(`/api/userTypes/${id}`);
+      fetchUserTypes();
+    } catch (error) {
+      console.error('Error deleting user type:', error);
     }
   };
 
-  const columns: GridColDef[] = [
-    { field: 'typeid', headerName: 'ID', width: 100 },
-    { field: 'typename', headerName: 'Type Name', width: 300 },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      width: 200,
-      renderCell: (params) => (
-        <Box>
-          <Button
-            startIcon={<EditIcon />}
-            onClick={() => handleOpenDialog(params.row)}
-            sx={{ mr: 1 }}
-          >
-            Edit
-          </Button>
-          <Button
-            startIcon={<DeleteIcon />}
-            color="error"
-            onClick={() => handleDelete(params.row.typeid)}
-          >
-            Delete
-          </Button>
-        </Box>
-      ),
-    },
-  ];
+  if (loading) {
+    return <Typography>Loading...</Typography>;
+  }
 
   return (
     <Paper sx={{ p: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h5" component="h2">
-          User Types
-        </Typography>
+        <Typography variant="h6">{labels.userType.title}</Typography>
         <Button
           variant="contained"
           color="primary"
           startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
+          onClick={handleOpen}
         >
-          Add User Type
+          {labels.userType.add}
         </Button>
       </Box>
-      <div style={{ height: 600, width: '100%' }}>
-        <DataGrid
-          rows={userTypes}
-          columns={columns}
-          loading={loading}
-          getRowId={(row) => row.typeid}
-          pageSizeOptions={[5, 10, 25, 50, 100]}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
-          disableRowSelectionOnClick
-        />
-      </div>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>
-          {editingUserType ? 'Edit User Type' : 'Add New User Type'}
-        </DialogTitle>
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>{labels.userType.id}</TableCell>
+              <TableCell>{labels.userType.name}</TableCell>
+              <TableCell align="right">{labels.tableHeaders.user.actions}</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {userTypes.map((userType) => (
+              <TableRow key={userType.typeid}>
+                <TableCell>{userType.typeid}</TableCell>
+                <TableCell>{userType.typename}</TableCell>
+                <TableCell align="right">
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                    <Button
+                      startIcon={<EditIcon />}
+                      onClick={() => handleEdit(userType)}
+                    >
+                      {labels.userType.edit}
+                    </Button>
+                    <Button
+                      startIcon={<DeleteIcon />}
+                      color="error"
+                      onClick={() => handleDelete(userType.typeid)}
+                    >
+                      {labels.userType.delete}
+                    </Button>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Dialog open={open} onClose={handleClose}>
         <form onSubmit={handleSubmit}>
+          <DialogTitle>
+            {editMode ? labels.userType.edit : labels.userType.add}
+          </DialogTitle>
           <DialogContent>
-            {!editingUserType && (
-              <TextField
-                fullWidth
-                label="Type ID"
-                name="typeid"
-                type="number"
-                value={formData.typeid}
-                onChange={(e) => setFormData({ ...formData, typeid: e.target.value })}
-                required
-                sx={{ mb: 2 }}
-              />
-            )}
             <TextField
+              autoFocus
+              margin="dense"
+              label={labels.userType.name}
               fullWidth
-              label="Type Name"
-              name="typename"
               value={formData.typename}
               onChange={(e) => setFormData({ ...formData, typename: e.target.value })}
-              required
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button onClick={handleClose}>{labels.buttons.cancel}</Button>
             <Button type="submit" variant="contained" color="primary">
-              Save
+              {editMode ? labels.buttons.update : labels.buttons.save}
             </Button>
           </DialogActions>
         </form>

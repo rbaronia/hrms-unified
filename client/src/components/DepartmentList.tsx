@@ -13,37 +13,74 @@ import {
   Select,
   MenuItem,
   Box,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import axios from 'axios';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+} from '@mui/icons-material';
+import api from '../utils/api';
+import labels from '../utils/labels';
+import { Department } from '../types/user';
 
-interface Department {
-  deptid: number;
-  deptname: string;
-  parentid: number | null;
+interface DepartmentWithMeta extends Department {
+  id: string;
+  parentName?: string;
+  level?: number;
+  indentedName?: string;
 }
 
 const DepartmentList: React.FC = () => {
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [departments, setDepartments] = useState<DepartmentWithMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const [editingDepartment, setEditingDepartment] = useState<DepartmentWithMeta | null>(null);
   const [formData, setFormData] = useState({
-    deptid: '',
     deptname: '',
     parentid: '',
   });
 
-  useEffect(() => {
-    fetchDepartments();
-  }, []);
+  const processHierarchy = (depts: Department[]): DepartmentWithMeta[] => {
+    const deptMap = new Map<string, DepartmentWithMeta>();
+    const result: DepartmentWithMeta[] = [];
+
+    // First pass: Create department objects and build the map
+    depts.forEach(dept => {
+      deptMap.set(dept.deptid.toString(), {
+        ...dept,
+        id: dept.deptid.toString(),
+        level: 0,
+        indentedName: dept.deptname
+      });
+    });
+
+    // Second pass: Process hierarchy and set parent names
+    depts.forEach(dept => {
+      const currentDept = deptMap.get(dept.deptid.toString());
+      if (currentDept) {
+        if (dept.parentid) {
+          const parentDept = deptMap.get(dept.parentid.toString());
+          if (parentDept) {
+            currentDept.parentName = parentDept.deptname;
+            currentDept.level = (parentDept.level || 0) + 1;
+            currentDept.indentedName = '  '.repeat(currentDept.level) + currentDept.deptname;
+          }
+        }
+        result.push(currentDept);
+      }
+    });
+
+    return result;
+  };
 
   const fetchDepartments = async () => {
     try {
-      const response = await axios.get('/api/employees/departments');
-      const sortedDepts = sortDepartmentsByHierarchy(response.data);
-      setDepartments(sortedDepts);
+      const response = await api.api.get('/departments');
+      const processedDepts = processHierarchy(response.data);
+      setDepartments(processedDepts);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching departments:', error);
@@ -51,18 +88,20 @@ const DepartmentList: React.FC = () => {
     }
   };
 
-  const handleOpenDialog = (department?: Department) => {
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+
+  const handleOpenDialog = (department?: DepartmentWithMeta) => {
     if (department) {
       setEditingDepartment(department);
       setFormData({
-        deptid: department.deptid.toString(),
         deptname: department.deptname,
         parentid: department.parentid?.toString() || '',
       });
     } else {
       setEditingDepartment(null);
       setFormData({
-        deptid: '',
         deptname: '',
         parentid: '',
       });
@@ -74,7 +113,6 @@ const DepartmentList: React.FC = () => {
     setOpenDialog(false);
     setEditingDepartment(null);
     setFormData({
-      deptid: '',
       deptname: '',
       parentid: '',
     });
@@ -84,13 +122,12 @@ const DepartmentList: React.FC = () => {
     e.preventDefault();
     try {
       if (editingDepartment) {
-        await axios.put(`/api/employees/departments/${editingDepartment.deptid}`, {
+        await api.api.put(`/departments/${editingDepartment.deptid}`, {
           deptname: formData.deptname,
           parentid: formData.parentid ? parseInt(formData.parentid) : null,
         });
       } else {
-        await axios.post('/api/employees/departments', {
-          deptid: parseInt(formData.deptid),
+        await api.api.post('/departments', {
           deptname: formData.deptname,
           parentid: formData.parentid ? parseInt(formData.parentid) : null,
         });
@@ -102,10 +139,10 @@ const DepartmentList: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this department?')) {
+  const handleDelete = async (id: string) => {
+    if (window.confirm(labels.messages.confirmDelete)) {
       try {
-        await axios.delete(`/api/employees/departments/${id}`);
+        await api.api.delete(`/departments/${id}`);
         fetchDepartments();
       } catch (error) {
         console.error('Error deleting department:', error);
@@ -113,76 +150,29 @@ const DepartmentList: React.FC = () => {
     }
   };
 
-  const findDepartmentLevel = (deptId: number): number => {
-    let level = 0;
-    let currentDept = departments.find(d => d.deptid === deptId);
-    
-    while (currentDept?.parentid) {
-      level++;
-      currentDept = departments.find(d => d.deptid === currentDept?.parentid);
-    }
-    
-    return level;
-  };
-
-  const sortDepartmentsByHierarchy = (depts: Department[]): Department[] => {
-    const result: Department[] = [];
-    const added = new Set<number>();
-    
-    const addDepartmentWithChildren = (dept: Department, level: number = 0) => {
-      if (!added.has(dept.deptid)) {
-        result.push({
-          ...dept,
-          deptname: '\u00A0'.repeat(level * 4) + dept.deptname // Add proper indentation
-        });
-        added.add(dept.deptid);
-        
-        // Add child departments
-        depts
-          .filter(d => d.parentid === dept.deptid)
-          .forEach(child => addDepartmentWithChildren(child, level + 1));
-      }
-    };
-    
-    // Start with root departments (no parent)
-    depts
-      .filter(d => !d.parentid)
-      .forEach(dept => addDepartmentWithChildren(dept));
-    
-    // Handle any remaining departments (in case of circular references)
-    depts.forEach(dept => {
-      if (!added.has(dept.deptid)) {
-        addDepartmentWithChildren(dept);
-      }
-    });
-    
-    return result;
-  };
-
   const columns: GridColDef[] = [
-    {
-      field: 'deptname',
-      headerName: 'Department Name',
-      flex: 1,
-    },
+    { field: 'deptid', headerName: labels.department.id, width: 100 },
+    { field: 'indentedName', headerName: labels.department.name, width: 300 },
+    { field: 'parentName', headerName: labels.department.parent, width: 200 },
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 120,
+      width: 200,
       renderCell: (params) => (
         <Box>
           <Button
+            startIcon={<EditIcon />}
             onClick={() => handleOpenDialog(params.row)}
-            size="small"
+            sx={{ mr: 1 }}
           >
-            <EditIcon />
+            {labels.buttons.edit}
           </Button>
           <Button
-            onClick={() => handleDelete(params.row.deptid)}
-            size="small"
+            startIcon={<DeleteIcon />}
             color="error"
+            onClick={() => handleDelete(params.row.deptid)}
           >
-            <DeleteIcon />
+            {labels.buttons.delete}
           </Button>
         </Box>
       ),
@@ -193,7 +183,7 @@ const DepartmentList: React.FC = () => {
     <Paper sx={{ p: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
         <Typography variant="h5" component="h2">
-          Departments
+          {labels.department.title}
         </Typography>
         <Button
           variant="contained"
@@ -201,56 +191,46 @@ const DepartmentList: React.FC = () => {
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
         >
-          Add Department
+          {labels.buttons.addDepartment}
         </Button>
       </Box>
+
       <div style={{ height: 600, width: '100%' }}>
         <DataGrid
           rows={departments}
           columns={columns}
           loading={loading}
           getRowId={(row) => row.deptid}
-          pageSizeOptions={[5, 10, 25, 50, 100]}
           initialState={{
             pagination: { paginationModel: { pageSize: 10 } },
           }}
+          pageSizeOptions={[10]}
           disableRowSelectionOnClick
         />
       </div>
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>
-          {editingDepartment ? 'Edit Department' : 'Add New Department'}
+          {editingDepartment ? labels.department.edit : labels.department.add}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
-            {!editingDepartment && (
-              <TextField
-                fullWidth
-                label="Department ID"
-                name="deptid"
-                type="number"
-                value={formData.deptid}
-                onChange={(e) => setFormData({ ...formData, deptid: e.target.value })}
-                required
-                sx={{ mb: 2 }}
-              />
-            )}
             <TextField
+              autoFocus
+              margin="dense"
+              label={labels.department.name}
               fullWidth
-              label="Department Name"
+              required
               name="deptname"
               value={formData.deptname}
               onChange={(e) => setFormData({ ...formData, deptname: e.target.value })}
-              required
-              sx={{ mb: 2 }}
             />
-            <FormControl fullWidth>
-              <InputLabel>Parent Department</InputLabel>
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <InputLabel>{labels.department.parent}</InputLabel>
               <Select
                 value={formData.parentid}
                 onChange={(e) => setFormData({ ...formData, parentid: e.target.value })}
-                label="Parent Department"
+                label={labels.department.parent}
               >
                 <MenuItem value="">
                   <em>None</em>
@@ -258,19 +238,19 @@ const DepartmentList: React.FC = () => {
                 {departments.map((dept) => (
                   <MenuItem
                     key={dept.deptid}
-                    value={dept.deptid}
+                    value={dept.deptid.toString()}
                     disabled={editingDepartment?.deptid === dept.deptid}
                   >
-                    {dept.deptname}
+                    {dept.indentedName}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button onClick={handleCloseDialog}>{labels.buttons.cancel}</Button>
             <Button type="submit" variant="contained" color="primary">
-              Save
+              {editingDepartment ? labels.buttons.update : labels.buttons.save}
             </Button>
           </DialogActions>
         </form>

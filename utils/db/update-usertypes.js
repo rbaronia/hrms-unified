@@ -32,7 +32,7 @@ async function updateUserTypes() {
         const userTypes = [
             [100, 'Administrator'],
             [101, 'Manager'],
-            [102, 'Regular Employee'],
+            [102, 'Regular User'],
             [103, 'Contractor'],
             [104, 'HR Staff']
         ];

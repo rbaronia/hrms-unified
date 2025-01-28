@@ -1,74 +1,85 @@
-import React from 'react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
+  Box,
+  CssBaseline,
+  Divider,
   Drawer,
-  Toolbar,
-  Typography,
+  IconButton,
   List,
   ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
-  IconButton,
+  Toolbar,
+  Typography,
 } from '@mui/material';
 import {
+  Menu as MenuIcon,
   Dashboard as DashboardIcon,
   People as PeopleIcon,
-  Business as BusinessIcon,
-  AccountBox as AccountBoxIcon,
-  Menu as MenuIcon,
+  AccountTree as DepartmentIcon,
+  Badge as UserTypeIcon,
+  Settings as AdminIcon,
 } from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
 
 const drawerWidth = 240;
 
-const StyledDrawer = styled(Drawer)(({ theme }) => ({
-  width: drawerWidth,
-  flexShrink: 0,
-  '& .MuiDrawer-paper': {
-    width: drawerWidth,
-    boxSizing: 'border-box',
-  },
-}));
-
 const Navigation: React.FC = () => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
   const location = useLocation();
-  const [mobileOpen, setMobileOpen] = React.useState(false);
-
-  const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { text: 'Employees', icon: <PeopleIcon />, path: '/employees' },
-    { text: 'Departments', icon: <BusinessIcon />, path: '/departments' },
-    { text: 'User Types', icon: <AccountBoxIcon />, path: '/user-types' },
-  ];
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
+  const menuItems = [
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+    { text: 'Users', icon: <PeopleIcon />, path: '/users' },
+    { text: 'Departments', icon: <DepartmentIcon />, path: '/departments' },
+    { text: 'User Types', icon: <UserTypeIcon />, path: '/user-types' },
+    { text: 'Admin Panel', icon: <AdminIcon />, path: '/admin' },
+  ];
+
   const drawer = (
-    <>
-      <Toolbar />
+    <div>
+      <Toolbar>
+        <Typography variant="h6" noWrap component="div">
+          HRMS
+        </Typography>
+      </Toolbar>
+      <Divider />
       <List>
         {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            component={RouterLink}
-            to={item.path}
-            selected={location.pathname === item.path}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
+              selected={location.pathname === item.path}
+              onClick={() => {
+                navigate(item.path);
+                setMobileOpen(false);
+              }}
+            >
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
           </ListItem>
         ))}
       </List>
-    </>
+    </div>
   );
 
   return (
-    <>
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+    <Box sx={{ display: 'flex' }}>
+      <CssBaseline />
+      <AppBar
+        position="fixed"
+        sx={{
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
+        }}
+      >
         <Toolbar>
           <IconButton
             color="inherit"
@@ -80,26 +91,40 @@ const Navigation: React.FC = () => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            HRMS Dashboard
+            {menuItems.find(item => item.path === location.pathname)?.text || 'HRMS'}
           </Typography>
         </Toolbar>
       </AppBar>
-      <StyledDrawer
-        variant="permanent"
-        sx={{ display: { xs: 'none', sm: 'block' } }}
+      <Box
+        component="nav"
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
       >
-        {drawer}
-      </StyledDrawer>
-      <Drawer
-        variant="temporary"
-        open={mobileOpen}
-        onClose={handleDrawerToggle}
-        ModalProps={{ keepMounted: true }}
-        sx={{ display: { xs: 'block', sm: 'none' } }}
-      >
-        {drawer}
-      </Drawer>
-    </>
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{
+            keepMounted: true,
+          }}
+          sx={{
+            display: { xs: 'block', sm: 'none' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+        >
+          {drawer}
+        </Drawer>
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: 'none', sm: 'block' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+          open
+        >
+          {drawer}
+        </Drawer>
+      </Box>
+    </Box>
   );
 };
 

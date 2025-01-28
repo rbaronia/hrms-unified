@@ -1,22 +1,22 @@
 # HRMS Application
 
-A modern Human Resource Management System (HRMS) built with Node.js and React. This application provides comprehensive employee management features with a clean, intuitive interface.
+A modern Human Resource Management System (HRMS) built with Node.js and React. This application provides comprehensive user management features with a clean, intuitive interface.
 
 ## Features
 
-### Employee Management
-- Create, Read, Update, and Delete (CRUD) operations for employees
+### User Management
+- Create, Read, Update, and Delete (CRUD) operations for users
 - Advanced search functionality with multiple field filters
 - Automatic User ID generation
 - Manager assignment with hierarchy validation
 - Department assignment with visual hierarchy
 - User type management
-- Employee status tracking
+- User status tracking
 
 ### Department Management
 - Hierarchical department structure
 - Visual indentation for department relationships
-- Department-wise employee grouping
+- Department-wise user grouping
 - Validation to prevent circular references
 
 ### User Interface
@@ -36,375 +36,357 @@ A modern Human Resource Management System (HRMS) built with Node.js and React. T
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
-- Node.js (v14 or higher)
+- Node.js (v16 or higher)
 - MySQL (v8 or higher)
-- npm (v6 or higher) or yarn
+- npm (v8 or higher)
 - Git
 
-## Installation Guide
-
-### 1. Clone the Repository
+You can check if you have all prerequisites installed by running:
 ```bash
-git clone https://github.com/rbaronia/hrms-unified.git
+./scripts/check-prerequisites.sh
+```
+
+## Quick Start
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/hrms-unified.git
 cd hrms-unified
 ```
 
-### 2. Database Setup
-
-You have two options to initialize the database:
-
-#### Option 1: Using the Initialization Script (Recommended)
+2. Initialize the database:
 ```bash
-# This will create the database, import schema and data
 mysql -u root -p < db/init.sql
 ```
 
-#### Option 2: Manual Setup
+3. Create configuration:
 ```bash
-# Create the database
-mysql -u root -p
-mysql> CREATE DATABASE hrmsdb;
-mysql> exit
-
-# Import schema
-mysql -u root -p hrmsdb < db/schema.sql
-
-# Import data
-mysql -u root -p hrmsdb < db/data.sql
+cat > config.properties << EOL
+db.jdbcUrl=jdbc:mysql://localhost:3306/hrmsdb?user=root&password=your_password
+server.port=3000
+EOL
 ```
 
-The database includes:
-- Department hierarchy with 33 departments
-- Employee table with sample records
-- User types and permissions
-- Pre-configured manager-subordinate relationships
+4. Install dependencies and build:
+```bash
+./scripts/manage-service.sh build
+```
 
-### 3. Configuration Setup
-Create a `config.properties` file in the root directory:
+5. Start the application:
+```bash
+./scripts/manage-service.sh start
+```
+
+The application will be available at http://localhost:3000
+
+## Detailed Installation Guide
+
+### Database Setup
+
+The database initialization script (`db/init.sql`) will:
+1. Create a new database named 'hrmsdb'
+2. Create all necessary tables (USER, DEPARTMENT, USERTYPE)
+3. Set up foreign key relationships
+4. Populate tables with sample data
+
+You can customize the sample data by editing `db/init.sql` before running it.
+
+### Configuration
+
+The `config.properties` file supports the following options:
+
 ```properties
-# Database Configuration
-db.jdbcUrl=jdbc:mysql://localhost:3307/hrmsdb?user=root&password=your_password&ssl=false
-db.queueLimit=0
-
-# Server Configuration
+# Required
+db.jdbcUrl=jdbc:mysql://localhost:3306/hrmsdb?user=root&password=your_password
 server.port=3000
-server.env=development
 
-# Logging Configuration
+# Optional
 logging.level=info
 logging.file=logs/hrms.log
 ```
 
-### 4. Install and Build
+### Running as a Service
+
+To install and run the application as a system service:
+
+1. Install the service:
 ```bash
-# Install and build everything (recommended)
+sudo ./scripts/install-service.sh
+```
+
+2. Manage the service:
+```bash
+sudo systemctl start hrms.service   # Start the service
+sudo systemctl stop hrms.service    # Stop the service
+sudo systemctl restart hrms.service # Restart the service
+sudo systemctl status hrms.service  # Check status
+```
+
+3. View logs:
+```bash
+journalctl -u hrms.service -f
+```
+
+### Manual Operation
+
+If you prefer to run the application manually:
+
+1. Build the application:
+```bash
 ./scripts/manage-service.sh build
-
-# Or manually:
-# Install backend dependencies
-npm install
-
-# Install and build frontend
-cd client
-npm install
-npm run build
-cd ..
 ```
 
-### 5. Start the Application
-
-#### Using Service Management Script (Recommended)
+2. Start the server:
 ```bash
-# Start in development mode
-sudo ./scripts/manage-service.sh start-dev
-
-# Start in production mode
-sudo ./scripts/manage-service.sh start
-
-# Check status
-sudo ./scripts/manage-service.sh status
-
-# Stop the service
-sudo ./scripts/manage-service.sh stop
+./scripts/manage-service.sh start
 ```
 
-#### Manual Start
+3. Other commands:
 ```bash
-# Development mode (runs both frontend and backend)
-npm run dev
-
-# Production mode
-npm start
+./scripts/manage-service.sh stop    # Stop the server
+./scripts/manage-service.sh restart # Restart the server
+./scripts/manage-service.sh status  # Check status
 ```
 
-Note: The development mode requires the client to be built first. The service management script handles this automatically, but if you're running manually, make sure to build the client first.
-
-## RHEL Server Deployment
-
-Follow these steps to deploy the application as a system service on RHEL:
+## Installation on RHEL (Red Hat Enterprise Linux)
 
 ### Prerequisites
-- RHEL 7 or later
-- Root access or sudo privileges
-- Node.js 14+ installed globally
-- MySQL installed and running
-- Git installed
 
-### Installation Steps
-
-1. Clone the repository in your home directory:
+1. Install Node.js and npm:
 ```bash
-# As the user (e.g., ibmdemo)
-cd ~
-git clone https://github.com/rbaronia/hrms-unified.git
+# Add NodeSource repository
+sudo dnf module enable nodejs:16
+sudo dnf install nodejs npm
+
+# Verify installation
+node --version  # Should be v16.x or higher
+npm --version   # Should be v8.x or higher
+```
+
+2. Install MySQL:
+```bash
+# Add MySQL repository
+sudo dnf install mysql-server
+
+# Start and enable MySQL
+sudo systemctl start mysqld
+sudo systemctl enable mysqld
+
+# Secure MySQL installation
+sudo mysql_secure_installation
+
+# Verify MySQL is running
+sudo systemctl status mysqld
+```
+
+3. Install Git:
+```bash
+sudo dnf install git
+```
+
+4. Install development tools:
+```bash
+sudo dnf groupinstall "Development Tools"
+```
+
+### Application Setup
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/hrms-unified.git
 cd hrms-unified
 ```
 
-2. Install dependencies and build:
+2. Set up the database:
 ```bash
-# Install node dependencies and build the application
-sudo ./scripts/manage-service.sh build
+# Create database and user
+sudo mysql -u root -p
+```
+
+```sql
+CREATE DATABASE hrmsdb;
+CREATE USER 'hrmsuser'@'localhost' IDENTIFIED BY 'your_secure_password';
+GRANT ALL PRIVILEGES ON hrmsdb.* TO 'hrmsuser'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+```bash
+# Initialize database schema
+mysql -u hrmsuser -p hrmsdb < db/init.sql
 ```
 
 3. Configure the application:
 ```bash
-# Copy the sample config
-cp config.properties.sample config.properties
+# Create .env file
+cat > .env << EOL
+# Database Configuration
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=hrmsuser
+DB_PASSWORD=your_secure_password
+DB_NAME=hrmsdb
 
-# Edit the configuration
-vi config.properties
+# Server Configuration
+PORT=3000
+NODE_ENV=production
+
+# Security
+JWT_SECRET=your_jwt_secret_key
+CORS_ORIGIN=http://localhost:3000
+EOL
 ```
 
-4. Install as a system service:
+4. Install dependencies:
 ```bash
-cd scripts
-chmod +x install-service.sh
-sudo ./install-service.sh
-# When prompted, enter your username (e.g., ibmdemo)
-```
-
-5. Start the service:
-```bash
-sudo systemctl start hrms.service
-```
-
-### Service Management
-
-All service management commands require sudo privileges. You can either:
-
-1. Use sudo with each command (recommended):
-```bash
-# Check service status
-sudo systemctl status hrms.service
-
-# Start the service
-sudo systemctl start hrms.service
-
-# Stop the service
-sudo systemctl stop hrms.service
-
-# Restart the service
-sudo systemctl restart hrms.service
-
-# View logs
-sudo journalctl -u hrms.service
-```
-
-2. Or switch to root first (alternative):
-```bash
-# Switch to root
-sudo su -
-
-# Then run commands without sudo
-systemctl start hrms.service
-systemctl status hrms.service
-# etc...
-
-# Exit root when done
-exit
-```
-
-### Automatic Startup
-
-The service is configured to:
-- Start automatically when the server boots
-- Restart automatically if it crashes
-- Wait for MySQL to be available before starting
-- Run with proper system permissions
-- Run from the user's home directory
-
-### Troubleshooting
-
-1. If the service fails to start:
-```bash
-# Check the logs
-sudo journalctl -u hrms.service -n 50 --no-pager
-
-# Check service status
-sudo systemctl status hrms.service
-
-# Check if npm is in PATH for root
-sudo which npm
-# If npm not found, use full path
-sudo systemctl edit hrms.service
-# Add this under [Service]:
-# Environment=PATH=/usr/local/bin:/usr/bin:/bin
-```
-
-2. If MySQL connection fails:
-```bash
-# Verify MySQL is running
-sudo systemctl status mysqld
-
-# Check MySQL logs
-sudo journalctl -u mysqld
-```
-
-3. Permission issues:
-```bash
-# Check file ownership
-ls -l ~/hrms-unified
-
-# Fix permissions if needed
-sudo chown -R $USER:$USER ~/hrms-unified
-
-# Check service user
-sudo systemctl show hrms.service | grep User
-
-# Verify npm global installation
-which npm
-echo $PATH
-```
-
-4. If you get authentication prompts:
-```bash
-# Add yourself to the systemd-journal group to view logs
-sudo usermod -a -G systemd-journal $USER
-
-# Use sudo explicitly for all systemctl commands
-sudo systemctl start hrms.service
-```
-
-## Utility Scripts
-
-The application comes with utility scripts to help manage the service and check prerequisites:
-
-### Prerequisites Check
-```bash
-# Check if all required software and configurations are in place
-./scripts/check-prerequisites.sh
-```
-
-This script checks for:
-- Node.js installation
-- npm installation
-- MySQL installation and connectivity
-- Git installation
-- Required configuration files and properties
-
-### Service Management
-```bash
-# Build the application
-sudo ./scripts/manage-service.sh build
-
-# Start in production mode
-sudo ./scripts/manage-service.sh start
-
-# Start in development mode
-sudo ./scripts/manage-service.sh start-dev
-
-# Stop the service
-sudo ./scripts/manage-service.sh stop
-
-# Restart in production mode
-sudo ./scripts/manage-service.sh restart
-
-# Restart in development mode
-sudo ./scripts/manage-service.sh restart-dev
-
-# Check service status
-sudo ./scripts/manage-service.sh status
-```
-
-The service management script:
-- Automatically detects the port from config.properties
-- Ensures only one instance is running
-- Gracefully stops the service when requested
-- Provides clear status information
-
-## Project Structure
-```
-hrms-unified/
-├── client/                 # React frontend
-│   ├── src/
-│   │   ├── components/    # React components
-│   │   ├── App.tsx        # Main App component
-│   │   └── index.tsx      # Entry point
-│   └── package.json       # Frontend dependencies
-├── db/                    # Database scripts
-│   ├── schema.sql        # Database schema
-│   ├── data.sql          # Sample data
-│   └── init.sql          # Database initialization
-├── routes/                # Backend API routes
-├── utils/                 # Utility functions
-├── config/               # Configuration files
-├── scripts/              # Utility scripts
-│   ├── check-prerequisites.sh  # Check required software
-│   └── manage-service.sh      # Manage application lifecycle
-└── server.js             # Backend entry point
-```
-
-## API Documentation
-
-### Employee Endpoints
-- `GET /api/employees` - Get all employees
-- `GET /api/employees/:id` - Get employee by ID
-- `POST /api/employees` - Create new employee
-- `PUT /api/employees/:id` - Update employee
-- `DELETE /api/employees/:id` - Delete employee
-
-### Department Endpoints
-- `GET /api/employees/departments` - Get department hierarchy
-- `GET /api/employees/managers` - Get all managers
-- `GET /api/employees/usertypes` - Get all user types
-
-## Common Issues & Solutions
-
-### Database Connection Issues
-1. Ensure MySQL is running
-2. Verify database credentials in `config.properties`
-3. Check if database and tables exist
-4. Ensure proper privileges are granted to the database user
-
-### Build Issues
-1. Clear npm cache: `npm cache clean --force`
-2. Delete node_modules and reinstall: 
-```bash
-rm -rf node_modules
-rm -rf client/node_modules
+# Install backend dependencies
 npm install
-cd client && npm install
+
+# Install frontend dependencies
+cd client
+npm install
+cd ..
 ```
 
-### Runtime Issues
-1. Port conflicts: Change port in `config.properties`
-2. Memory issues: Increase Node.js memory limit
+5. Build the application:
 ```bash
-export NODE_OPTIONS=--max-old-space-size=4096
+# Build frontend
+cd client
+npm run build
+cd ..
+
+# Build backend (if using TypeScript)
+npm run build
 ```
+
+### Running as a Systemd Service
+
+1. Create a service file:
+```bash
+sudo tee /etc/systemd/system/hrms.service << EOL
+[Unit]
+Description=HRMS Application
+After=network.target mysqld.service
+
+[Service]
+Type=simple
+User=hrms
+WorkingDirectory=/opt/hrms-unified
+ExecStart=/usr/bin/npm start
+Restart=always
+Environment=NODE_ENV=production
+Environment=PORT=3000
+
+[Install]
+WantedBy=multi-user.target
+EOL
+```
+
+2. Create system user:
+```bash
+sudo useradd -r -s /bin/false hrms
+```
+
+3. Set up application directory:
+```bash
+# Copy application to /opt
+sudo cp -r . /opt/hrms-unified
+
+# Set permissions
+sudo chown -R hrms:hrms /opt/hrms-unified
+sudo chmod -R 755 /opt/hrms-unified
+```
+
+4. Start and enable the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl start hrms
+sudo systemctl enable hrms
+```
+
+### Firewall Configuration
+
+1. Configure firewalld:
+```bash
+# Allow HTTP traffic
+sudo firewall-cmd --permanent --add-port=3000/tcp
+
+# Allow MySQL if needed externally
+sudo firewall-cmd --permanent --add-port=3306/tcp
+
+# Reload firewall
+sudo firewall-cmd --reload
+```
+
+### SELinux Configuration
+
+If SELinux is enabled:
+
+```bash
+# Allow Node.js to listen on port 3000
+sudo semanage port -a -t http_port_t -p tcp 3000
+
+# Allow Node.js network connections
+sudo setsebool -P httpd_can_network_connect 1
+
+# Allow Node.js to connect to MySQL
+sudo setsebool -P httpd_can_network_connect_db 1
+```
+
+## Development
+
+### Running in Development Mode
+
+1. Start the backend server:
+```bash
+npm run dev
+```
+
+2. In another terminal, start the frontend development server:
+```bash
+cd client
+npm start
+```
+
+The frontend will be available at http://localhost:3000 and will automatically reload when you make changes.
+
+### Running Tests
+
+```bash
+# Backend tests
+npm test
+
+# Frontend tests
+cd client
+npm test
+```
+
+## Troubleshooting
+
+1. If you see OpenSSL-related errors:
+```bash
+export NODE_OPTIONS=--openssl-legacy-provider
+```
+
+2. If the service won't start:
+- Check logs: `journalctl -u hrms.service -f`
+- Verify MySQL is running: `systemctl status mysql`
+- Check config.properties permissions
+- Ensure all dependencies are installed
+
+3. If you can't connect to MySQL:
+- Verify MySQL is running: `systemctl status mysql`
+- Check credentials in config.properties
+- Ensure the database exists: `mysql -u root -p -e "SHOW DATABASES;"`
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Create your feature branch: `git checkout -b feature/my-new-feature`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin feature/my-new-feature`
+5. Submit a pull request
 
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support, please create an issue in the GitHub repository or contact the maintainers.

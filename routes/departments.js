@@ -6,69 +6,98 @@ const logger = require('../utils/logger');
 // Get all departments
 router.get('/', async (req, res) => {
     try {
-        const [rows] = await db.query('SELECT * FROM DEPARTMENT ORDER BY DEPTID');
-        logger.info('Retrieved all departments');
-        res.json(rows);
+        logger.info('Fetching departments');
+        const [departments] = await db.query(`
+            SELECT 
+                DEPTID as deptid,
+                DEPTNAME as deptname,
+                PARENTID as parentid
+            FROM DEPARTMENT 
+            ORDER BY DEPTNAME
+        `);
+        
+        logger.info(`Successfully retrieved ${departments.length} departments`);
+        res.json(departments);
     } catch (error) {
         logger.error('Error retrieving departments:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-// Get department hierarchy
-router.get('/hierarchy', async (req, res) => {
-    try {
-        const query = `
-            WITH RECURSIVE dept_tree AS (
-                SELECT DEPTID, DEPTNAME, PARENTID, 1 as level
-                FROM DEPARTMENT
-                WHERE PARENTID IS NULL
-                
-                UNION ALL
-                
-                SELECT d.DEPTID, d.DEPTNAME, d.PARENTID, dt.level + 1
-                FROM DEPARTMENT d
-                JOIN dept_tree dt ON d.PARENTID = dt.DEPTID
-            )
-            SELECT * FROM dept_tree ORDER BY level, DEPTID;
-        `;
-        
-        const [rows] = await db.query(query);
-        logger.info('Retrieved department hierarchy');
-        res.json(rows);
-    } catch (error) {
-        logger.error('Error retrieving department hierarchy:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ 
+            error: 'Failed to load departments',
+            message: 'An error occurred while retrieving department data',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
 
 // Get department by ID
 router.get('/:id', async (req, res) => {
     try {
-        const [rows] = await db.query('SELECT * FROM DEPARTMENT WHERE DEPTID = ?', [req.params.id]);
-        if (rows.length === 0) {
-            logger.warn(`Department not found with ID: ${req.params.id}`);
+        const [department] = await db.query(`
+            SELECT 
+                DEPTID as deptid,
+                DEPTNAME as deptname,
+                PARENTID as parentid
+            FROM DEPARTMENT 
+            WHERE DEPTID = ?
+        `, [req.params.id]);
+
+        if (department.length === 0) {
             return res.status(404).json({ error: 'Department not found' });
         }
-        logger.info(`Retrieved department with ID: ${req.params.id}`);
-        res.json(rows[0]);
+
+        res.json(department[0]);
     } catch (error) {
-        logger.error(`Error retrieving department ${req.params.id}:`, error);
+        logger.error('Error retrieving department:', error);
+        res.status(500).json({ error: 'Failed to load department' });
+    }
+});
+
+// Get department hierarchy
+router.get('/hierarchy', async (req, res) => {
+    try {
+        // First get all departments
+        const [allDepts] = await db.query('SELECT * FROM DEPARTMENT ORDER BY DEPTID');
+        
+        // Then build the hierarchy
+        const buildHierarchy = (parentId = null) => {
+            return allDepts
+                .filter(dept => dept.PARENTID === parentId)
+                .map(dept => ({
+                    deptid: dept.DEPTID,
+                    deptname: dept.DEPTNAME,
+                    parentid: dept.PARENTID,
+                    children: buildHierarchy(dept.DEPTID)
+                }));
+        };
+        
+        const hierarchicalDepts = buildHierarchy();
+        logger.info(`Retrieved department hierarchy with ${allDepts.length} departments`);
+        res.json(hierarchicalDepts);
+    } catch (error) {
+        logger.error('Error retrieving department hierarchy:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
 // Create new department
 router.post('/', async (req, res) => {
-    const { deptname, parentid } = req.body;
     try {
+        const { deptname, parentid } = req.body;
+        
+        if (!deptname) {
+            return res.status(400).json({ error: 'Department name is required' });
+        }
+        
         const [result] = await db.query(
             'INSERT INTO DEPARTMENT (DEPTNAME, PARENTID) VALUES (?, ?)',
             [deptname, parentid]
         );
-        const [newDept] = await db.query('SELECT * FROM DEPARTMENT WHERE DEPTID = ?', [result.insertId]);
-        logger.info('Created new department:', newDept[0]);
-        res.status(201).json(newDept[0]);
+        
+        logger.info(`Created new department with ID: ${result.insertId}`);
+        res.status(201).json({ 
+            deptid: result.insertId,
+            deptname,
+            parentid
+        });
     } catch (error) {
         logger.error('Error creating department:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -77,8 +106,25 @@ router.post('/', async (req, res) => {
 
 // Update department
 router.put('/:id', async (req, res) => {
-    const { deptname, parentid } = req.body;
     try {
+        const { deptname, parentid } = req.body;
+        
+        if (!deptname) {
+            return res.status(400).json({ error: 'Department name is required' });
+        }
+        
+        // Check for circular reference
+        if (parentid) {
+            const [parentCheck] = await db.query(
+                'SELECT PARENTID FROM DEPARTMENT WHERE DEPTID = ?',
+                [parentid]
+            );
+            
+            if (parentCheck.length > 0 && parentCheck[0].PARENTID === req.params.id) {
+                return res.status(400).json({ error: 'Circular reference detected' });
+            }
+        }
+        
         const [result] = await db.query(
             'UPDATE DEPARTMENT SET DEPTNAME = ?, PARENTID = ? WHERE DEPTID = ?',
             [deptname, parentid, req.params.id]
@@ -88,12 +134,15 @@ router.put('/:id', async (req, res) => {
             logger.warn(`Department not found with ID: ${req.params.id}`);
             return res.status(404).json({ error: 'Department not found' });
         }
-
-        const [updatedDept] = await db.query('SELECT * FROM DEPARTMENT WHERE DEPTID = ?', [req.params.id]);
+        
         logger.info(`Updated department with ID: ${req.params.id}`);
-        res.json(updatedDept[0]);
+        res.json({ 
+            deptid: parseInt(req.params.id),
+            deptname,
+            parentid
+        });
     } catch (error) {
-        logger.error(`Error updating department ${req.params.id}:`, error);
+        logger.error(`Error updating department with ID ${req.params.id}:`, error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -106,42 +155,39 @@ router.delete('/:id', async (req, res) => {
             'SELECT DEPTID FROM DEPARTMENT WHERE PARENTID = ?',
             [req.params.id]
         );
-
+        
         if (childDepts.length > 0) {
-            logger.warn(`Cannot delete department ${req.params.id}: has child departments`);
-            return res.status(400).json({
-                error: 'Cannot delete department that has child departments'
+            return res.status(400).json({ 
+                error: 'Cannot delete department with child departments' 
             });
         }
-
-        // Then check if there are any employees in this department
-        const [employees] = await db.query(
-            'SELECT ID FROM EMPLOYEE WHERE DEPTID = ?',
+        
+        // Then check if there are any users in this department
+        const [users] = await db.query(
+            'SELECT ID FROM USER WHERE DEPTID = ?',
             [req.params.id]
         );
-
-        if (employees.length > 0) {
-            logger.warn(`Cannot delete department ${req.params.id}: has employees`);
-            return res.status(400).json({
-                error: 'Cannot delete department that has employees'
+        
+        if (users.length > 0) {
+            return res.status(400).json({ 
+                error: 'Cannot delete department with assigned users' 
             });
         }
-
-        // If no children and no employees, proceed with deletion
+        
         const [result] = await db.query(
             'DELETE FROM DEPARTMENT WHERE DEPTID = ?',
             [req.params.id]
         );
-
+        
         if (result.affectedRows === 0) {
             logger.warn(`Department not found with ID: ${req.params.id}`);
             return res.status(404).json({ error: 'Department not found' });
         }
-
+        
         logger.info(`Deleted department with ID: ${req.params.id}`);
-        res.json({ message: 'Department deleted successfully' });
+        res.status(204).send();
     } catch (error) {
-        logger.error(`Error deleting department ${req.params.id}:`, error);
+        logger.error(`Error deleting department with ID ${req.params.id}:`, error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
