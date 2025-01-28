@@ -32,6 +32,8 @@ A modern Human Resource Management System (HRMS) built with Node.js and React. T
 - Error handling with detailed logging
 - Manager-subordinate relationship validation
 - Secure API endpoints
+- SELinux and firewall configuration
+- Systemd service management
 
 ## Prerequisites
 
@@ -43,7 +45,7 @@ Before you begin, ensure you have the following installed:
 
 You can check if you have all prerequisites installed by running:
 ```bash
-./scripts/check-prerequisites.sh
+npm run check-env
 ```
 
 ## Quick Start
@@ -59,22 +61,20 @@ cd hrms-unified
 mysql -u root -p < db/init.sql
 ```
 
-3. Create configuration:
+3. Create environment configuration:
 ```bash
-cat > config.properties << EOL
-db.jdbcUrl=jdbc:mysql://localhost:3306/hrmsdb?user=root&password=your_password
-server.port=3000
-EOL
+cp .env.example .env
+# Edit .env with your configuration
 ```
 
 4. Install dependencies and build:
 ```bash
-./scripts/manage-service.sh build
+npm run install-all
 ```
 
 5. Start the application:
 ```bash
-./scripts/manage-service.sh start
+npm run service:start
 ```
 
 The application will be available at http://localhost:3000
@@ -93,16 +93,34 @@ You can customize the sample data by editing `db/init.sql` before running it.
 
 ### Configuration
 
-The `config.properties` file supports the following options:
+The `.env` file supports the following options:
 
 ```properties
-# Required
-db.jdbcUrl=jdbc:mysql://localhost:3306/hrmsdb?user=root&password=your_password
-server.port=3000
+# Database Configuration
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=hrmsuser
+DB_PASSWORD=your_secure_password
+DB_NAME=hrmsdb
+DB_SSL=false
 
-# Optional
-logging.level=info
-logging.file=logs/hrms.log
+# Server Configuration
+PORT=3000
+NODE_ENV=production
+
+# Security
+JWT_SECRET=your_jwt_secret_key
+CORS_ORIGIN=http://localhost:3000
+
+# Logging
+LOG_LEVEL=info
+LOG_FILE=logs/hrms.log
+LOG_MAX_SIZE=10m
+LOG_MAX_FILES=7d
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
 ```
 
 ### Running as a Service
@@ -111,15 +129,15 @@ To install and run the application as a system service:
 
 1. Install the service:
 ```bash
-sudo ./scripts/install-service.sh
+sudo npm run service:install
 ```
 
 2. Manage the service:
 ```bash
-sudo systemctl start hrms.service   # Start the service
-sudo systemctl stop hrms.service    # Stop the service
-sudo systemctl restart hrms.service # Restart the service
-sudo systemctl status hrms.service  # Check status
+sudo npm run service:start    # Start the service
+sudo npm run service:stop     # Stop the service
+sudo npm run service:restart  # Restart the service
+sudo npm run service:status   # Check status
 ```
 
 3. View logs:
@@ -127,25 +145,16 @@ sudo systemctl status hrms.service  # Check status
 journalctl -u hrms.service -f
 ```
 
-### Manual Operation
+### Database Backups
 
-If you prefer to run the application manually:
+The application includes an automated backup script:
 
-1. Build the application:
 ```bash
-./scripts/manage-service.sh build
-```
+# Run a manual backup
+npm run backup
 
-2. Start the server:
-```bash
-./scripts/manage-service.sh start
-```
-
-3. Other commands:
-```bash
-./scripts/manage-service.sh stop    # Stop the server
-./scripts/manage-service.sh restart # Restart the server
-./scripts/manage-service.sh status  # Check status
+# View backups in db/backups directory
+ls -l db/backups
 ```
 
 ## Installation on RHEL (Red Hat Enterprise Linux)
@@ -218,86 +227,31 @@ mysql -u hrmsuser -p hrmsdb < db/init.sql
 
 3. Configure the application:
 ```bash
-# Create .env file
-cat > .env << EOL
-# Database Configuration
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_USER=hrmsuser
-DB_PASSWORD=your_secure_password
-DB_NAME=hrmsdb
-
-# Server Configuration
-PORT=3000
-NODE_ENV=production
-
-# Security
-JWT_SECRET=your_jwt_secret_key
-CORS_ORIGIN=http://localhost:3000
-EOL
+# Create .env file from example
+cp .env.example .env
+# Edit .env with your configuration
 ```
 
 4. Install dependencies:
 ```bash
-# Install backend dependencies
-npm install
-
-# Install frontend dependencies
-cd client
-npm install
-cd ..
+# Install all dependencies
+npm run install-all
 ```
 
 5. Build the application:
 ```bash
-# Build frontend
-cd client
-npm run build
-cd ..
-
-# Build backend (if using TypeScript)
+# Build frontend and backend
 npm run build
 ```
 
 ### Running as a Systemd Service
 
-1. Create a service file:
+1. Install the service:
 ```bash
-sudo tee /etc/systemd/system/hrms.service << EOL
-[Unit]
-Description=HRMS Application
-After=network.target mysqld.service
-
-[Service]
-Type=simple
-User=hrms
-WorkingDirectory=/opt/hrms-unified
-ExecStart=/usr/bin/npm start
-Restart=always
-Environment=NODE_ENV=production
-Environment=PORT=3000
-
-[Install]
-WantedBy=multi-user.target
-EOL
+sudo npm run service:install
 ```
 
-2. Create system user:
-```bash
-sudo useradd -r -s /bin/false hrms
-```
-
-3. Set up application directory:
-```bash
-# Copy application to /opt
-sudo cp -r . /opt/hrms-unified
-
-# Set permissions
-sudo chown -R hrms:hrms /opt/hrms-unified
-sudo chmod -R 755 /opt/hrms-unified
-```
-
-4. Start and enable the service:
+2. Start and enable the service:
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl start hrms
@@ -308,7 +262,7 @@ sudo systemctl enable hrms
 
 1. Configure firewalld:
 ```bash
-# Allow HTTP traffic
+# Allow application port
 sudo firewall-cmd --permanent --add-port=3000/tcp
 
 # Allow MySQL if needed externally
@@ -337,47 +291,51 @@ sudo setsebool -P httpd_can_network_connect_db 1
 
 ### Running in Development Mode
 
-1. Start the backend server:
+1. Start the development server:
 ```bash
 npm run dev
 ```
 
-2. In another terminal, start the frontend development server:
-```bash
-cd client
-npm start
-```
-
-The frontend will be available at http://localhost:3000 and will automatically reload when you make changes.
+This will start both the backend and frontend in development mode with hot reloading.
 
 ### Running Tests
 
 ```bash
-# Backend tests
+# Run all tests
 npm test
 
-# Frontend tests
-cd client
-npm test
+# Run specific test suites
+npm run test:users
+npm run test:departments
 ```
 
 ## Troubleshooting
 
-1. If you see OpenSSL-related errors:
+1. If you see "index.html not found" error:
 ```bash
-export NODE_OPTIONS=--openssl-legacy-provider
+# Rebuild the frontend
+cd client && npm run build
 ```
 
 2. If the service won't start:
 - Check logs: `journalctl -u hrms.service -f`
-- Verify MySQL is running: `systemctl status mysql`
-- Check config.properties permissions
+- Verify MySQL is running: `systemctl status mysqld`
+- Check .env file permissions
 - Ensure all dependencies are installed
 
 3. If you can't connect to MySQL:
-- Verify MySQL is running: `systemctl status mysql`
-- Check credentials in config.properties
+- Verify MySQL is running: `systemctl status mysqld`
+- Check credentials in .env
 - Ensure the database exists: `mysql -u root -p -e "SHOW DATABASES;"`
+
+4. SELinux Issues:
+```bash
+# Check SELinux status
+getenforce
+
+# View SELinux denials
+sudo ausearch -m AVC -ts recent
+```
 
 ## Contributing
 
