@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../utils/api';
+import api from '../../utils/api';
 import { Paper, Typography, List, ListItem, ListItemText } from '@mui/material';
 
 const Reportees: React.FC = () => {
@@ -8,7 +8,7 @@ const Reportees: React.FC = () => {
   useEffect(() => {
     const fetchReportees = async () => {
       try {
-        const response = await api.api.get('/api/reportees');
+        const response = await api.api.get('api/reportees');
         setReportees(response.data);
       } catch (error) {
         console.error('Error fetching reportees:', error);
