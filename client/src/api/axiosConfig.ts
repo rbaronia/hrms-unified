@@ -3,7 +3,7 @@ import axios from 'axios';
 // Get the current hostname and port
 const getBaseUrl = () => {
   const { protocol, hostname, port } = window.location;
-  // Always use the same origin to ensure server-relative URLs
+  // Always use the current window location
   return `${protocol}//${hostname}${port ? `:${port}` : ''}`;
 };
 
@@ -18,6 +18,9 @@ const axiosInstance = axios.create({
 // Add request interceptor for authentication
 axiosInstance.interceptors.request.use(
   (config) => {
+    // Update baseURL on every request to ensure it matches current window location
+    config.baseURL = `${getBaseUrl()}/api`;
+    
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
