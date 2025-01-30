@@ -1,15 +1,20 @@
 import axios from 'axios';
 
-// Create axios instance
+// Create axios instance with dynamic base URL
 const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add request interceptor for authentication
+// Add request interceptor for authentication and base URL
 axiosInstance.interceptors.request.use(
   (config) => {
+    // Set the base URL dynamically based on the current origin
+    const origin = window.location.origin;
+    config.baseURL = origin;
+
+    // Add authentication token if available
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

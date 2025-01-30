@@ -58,39 +58,16 @@ app.use(express.urlencoded({ extended: true }));
 logger.info(`Current environment: ${config.server.env}`);
 logger.info(`Current directory: ${__dirname}`);
 
-// Serve static files from the React app
-const clientBuildPath = path.join(__dirname, 'client/build');
-logger.info(`Client build path: ${clientBuildPath}`);
-
-// Check if build directory exists
-if (fs.existsSync(clientBuildPath)) {
-  logger.info('Client build directory found');
-  const indexPath = path.join(clientBuildPath, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    logger.info('index.html found in build directory');
-  }
-  app.use(express.static(clientBuildPath));
-  logger.info('Static file middleware initialized');
-}
-
-// API Routes
-const userRoutes = require('./routes/users');
-const departmentRoutes = require('./routes/departments');
-const userTypeRoutes = require('./routes/userTypes');
-const dashboardRoutes = require('./routes/dashboard');
-
 // API routes
-app.use('/api/users', userRoutes);
-app.use('/api/departments', departmentRoutes);
-app.use('/api/userTypes', userTypeRoutes);
-app.use('/api/dashboard', dashboardRoutes);
+app.use('/api', require('./routes/api'));
 
-// Handle React routing for all non-API routes
-app.get('*', (req, res, next) => {
-  if (req.url.startsWith('/api/')) {
-    return next();
-  }
-  res.sendFile(path.join(clientBuildPath, 'index.html'));
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'client/build')));
+
+// The "catchall" handler: for any request that doesn't
+// match one above, send back React's index.html file.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/build/index.html'));
 });
 
 // Error handling middleware
