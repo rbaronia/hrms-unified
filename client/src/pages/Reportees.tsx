@@ -15,7 +15,7 @@ const Reportees: React.FC = () => {
   useEffect(() => {
     const fetchReportees = async () => {
       try {
-        const response = await api.api.get('api/reportees');
+        const response = await api.api.get('/api/reportees');
         if (Array.isArray(response.data)) {
           setReportees(response.data);
         } else {

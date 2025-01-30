@@ -14,7 +14,7 @@ const DepartmentDistribution: React.FC = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const response = await api.api.get('api/departments');
+        const response = await api.api.get('/api/departments');
         if (Array.isArray(response.data)) {
           setDepartments(response.data);
         } else {
