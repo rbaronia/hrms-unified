@@ -28,6 +28,9 @@ const endpoints = {
     create: (data: any) => axiosInstance.post('/userTypes', data),
     update: (id: number, data: any) => axiosInstance.put(`/userTypes/${id}`, data),
     delete: (id: number) => axiosInstance.delete(`/userTypes/${id}`)
+  },
+  reportees: {
+    getAll: () => axiosInstance.get('/reportees')
   }
 };
 

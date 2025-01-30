@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from '../api/axiosConfig';
+import api from '../utils/api';
 import { Paper, Typography, List, ListItem, ListItemText } from '@mui/material';
 
 const DepartmentDistribution: React.FC = () => {
@@ -8,7 +8,7 @@ const DepartmentDistribution: React.FC = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const response = await axios.get('/departments'); 
+        const response = await api.endpoints.departments.getAll();
         setDepartments(response.data);
       } catch (error) {
         console.error('Error fetching department distribution:', error);
