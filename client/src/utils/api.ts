@@ -11,11 +11,9 @@ const getBaseUrl = () => {
   return `${protocol}//${hostname}${port ? `:${port}` : ''}`;
 };
 
-const API_PREFIX = '/api';
-
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: `${getBaseUrl()}${API_PREFIX}`,
+  baseURL: `${getBaseUrl()}/api`,
   headers: {
     'Content-Type': 'application/json'
   }

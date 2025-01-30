@@ -8,7 +8,7 @@ const Reportees: React.FC = () => {
   useEffect(() => {
     const fetchReportees = async () => {
       try {
-        const response = await axios.get('/api/reportees'); // Adjust this API endpoint accordingly
+        const response = await axios.get('/reportees'); 
         setReportees(response.data);
       } catch (error) {
         console.error('Error fetching reportees:', error);
