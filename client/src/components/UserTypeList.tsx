@@ -17,7 +17,7 @@ import {
   TableCell,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import axios from 'axios';
+import axios from '../api/axiosConfig';
 import labels from '../utils/labels';
 
 interface UserType {

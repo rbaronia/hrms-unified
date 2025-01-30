@@ -1,11 +1,21 @@
 import axios from 'axios';
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+// Get the current hostname and port
+const getBaseUrl = () => {
+  const { protocol, hostname, port } = window.location;
+  // If running in development with different ports for client and server
+  if (process.env.NODE_ENV === 'development') {
+    return process.env.REACT_APP_API_URL || 'http://localhost:3000';
+  }
+  // In production, use the same origin
+  return `${protocol}//${hostname}${port ? `:${port}` : ''}`;
+};
+
 const API_PREFIX = '/api';
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: `${BASE_URL}${API_PREFIX}`,
+  baseURL: `${getBaseUrl()}${API_PREFIX}`,
   headers: {
     'Content-Type': 'application/json'
   }

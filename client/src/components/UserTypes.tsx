@@ -23,7 +23,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon
 } from '@mui/icons-material';
-import axios from 'axios';
+import axios from '../api/axiosConfig';
 import labels from '../utils/labels';
 import { UserType } from '../types/user';
 

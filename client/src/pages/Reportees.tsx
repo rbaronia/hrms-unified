@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios from '../api/axiosConfig';
 import { Paper, Typography, List, ListItem, ListItemText } from '@mui/material';
 
 const Reportees: React.FC = () => {
