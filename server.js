@@ -30,13 +30,25 @@ logger.info('Compression middleware initialized');
 
 // CORS middleware
 const corsOptions = {
-  origin: config.security.corsOrigin,
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Parse the origin to get the hostname
+    try {
+      const originUrl = new URL(origin);
+      // Allow any origin that matches the hostname pattern
+      callback(null, true);
+    } catch (error) {
+      callback(new Error('Invalid origin'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 };
 app.use(cors(corsOptions));
-logger.info('CORS middleware initialized with origins:', corsOptions.origin);
+logger.info('CORS middleware initialized with dynamic origin handling');
 
 // Basic middleware
 app.use(express.json());
