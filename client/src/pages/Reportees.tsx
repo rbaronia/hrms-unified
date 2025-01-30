@@ -8,7 +8,7 @@ const Reportees: React.FC = () => {
   useEffect(() => {
     const fetchReportees = async () => {
       try {
-        const response = await api.endpoints.reportees.getAll();
+        const response = await api.api.get('/api/reportees');
         setReportees(response.data);
       } catch (error) {
         console.error('Error fetching reportees:', error);

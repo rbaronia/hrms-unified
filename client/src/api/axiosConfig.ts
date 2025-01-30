@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // Create axios instance with base URL
 const axiosInstance = axios.create({
-  // Always use a relative path for the API
-  baseURL: '/api',
+  // Use root path since we're adding /api in each request
+  baseURL: '/',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,9 +12,7 @@ const axiosInstance = axios.create({
 // Add request interceptor for authentication and dynamic base URL
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Always use a relative path for the API
-    config.baseURL = '/api';
-    
+    // Don't set baseURL here since we're using absolute paths with /api prefix
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

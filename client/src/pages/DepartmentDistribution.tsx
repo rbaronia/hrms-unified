@@ -8,7 +8,7 @@ const DepartmentDistribution: React.FC = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const response = await api.endpoints.departments.getAll();
+        const response = await api.api.get('/api/departments');
         setDepartments(response.data);
       } catch (error) {
         console.error('Error fetching department distribution:', error);
