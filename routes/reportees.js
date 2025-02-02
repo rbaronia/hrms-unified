@@ -12,14 +12,14 @@ router.get('/', async (req, res) => {
                 u.USERID as userid,
                 u.FIRSTNAME as firstname,
                 u.LASTNAME as lastname,
-                m.USERID as manager
+                CONCAT(m.FIRSTNAME, ' ', m.LASTNAME) as manager
             FROM USER u
             LEFT JOIN USER m ON u.MANAGER = m.USERID
             WHERE u.ISMANAGER = '0'
             ORDER BY u.LASTNAME, u.FIRSTNAME
         `);
         
-        logger.info(`Successfully retrieved ${reportees.length} reportees`);
+        logger.info('Reportees query result:', { reportees });
         res.json(reportees);
     } catch (error) {
         logger.error('Error retrieving reportees:', error);

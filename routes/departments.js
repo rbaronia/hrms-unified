@@ -9,13 +9,17 @@ router.get('/', async (req, res) => {
         logger.info('Fetching departments');
         const [departments] = await db.query(`
             SELECT 
-                DEPTID as deptid,
-                DEPTNAME as deptname,
-                PARENTID as parentid
-            FROM DEPARTMENT 
-            ORDER BY DEPTNAME
+                d.DEPTID as deptid,
+                d.DEPTNAME as deptname,
+                d.PARENTID as parentid,
+                COUNT(u.ID) as userCount
+            FROM DEPARTMENT d
+            LEFT JOIN USER u ON u.DEPTID = d.DEPTID
+            GROUP BY d.DEPTID, d.DEPTNAME, d.PARENTID
+            ORDER BY d.DEPTNAME
         `);
         
+        logger.info('Departments query result:', { departments });
         logger.info(`Successfully retrieved ${departments.length} departments`);
         res.json(departments);
     } catch (error) {
@@ -31,6 +35,7 @@ router.get('/', async (req, res) => {
 // Get department by ID
 router.get('/:id', async (req, res) => {
     try {
+        logger.info(`Fetching department with ID: ${req.params.id}`);
         const [department] = await db.query(`
             SELECT 
                 DEPTID as deptid,
@@ -41,12 +46,14 @@ router.get('/:id', async (req, res) => {
         `, [req.params.id]);
 
         if (department.length === 0) {
+            logger.warn(`Department not found with ID: ${req.params.id}`);
             return res.status(404).json({ error: 'Department not found' });
         }
 
+        logger.info(`Successfully retrieved department with ID: ${req.params.id}`);
         res.json(department[0]);
     } catch (error) {
-        logger.error('Error retrieving department:', error);
+        logger.error(`Error retrieving department with ID ${req.params.id}:`, error);
         res.status(500).json({ error: 'Failed to load department' });
     }
 });
@@ -157,6 +164,7 @@ router.delete('/:id', async (req, res) => {
         );
         
         if (childDepts.length > 0) {
+            logger.warn(`Cannot delete department with ID ${req.params.id} because it has child departments`);
             return res.status(400).json({ 
                 error: 'Cannot delete department with child departments' 
             });
@@ -169,6 +177,7 @@ router.delete('/:id', async (req, res) => {
         );
         
         if (users.length > 0) {
+            logger.warn(`Cannot delete department with ID ${req.params.id} because it has assigned users`);
             return res.status(400).json({ 
                 error: 'Cannot delete department with assigned users' 
             });
