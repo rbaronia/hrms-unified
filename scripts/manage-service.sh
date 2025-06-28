@@ -9,8 +9,7 @@ ENV_FILE="$APP_DIR/.env"
 # Load environment variables if exists
 [ -f "$ENV_FILE" ] && source "$ENV_FILE"
 
-# Default values
-PORT=${PORT:-3000}
+# Do not set PORT or CORS_ORIGIN here; they must come from .env
 NODE_ENV=${NODE_ENV:-production}
 
 # Helper function to check if running as root
