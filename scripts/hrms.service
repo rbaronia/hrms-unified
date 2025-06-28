@@ -7,6 +7,8 @@ Wants=mysql.service
 Type=simple
 User=<your-user>
 WorkingDirectory=/home/<your-user>/hrms-unified
+# Load environment variables including PORT from .env file
+EnvironmentFile=/home/<your-user>/hrms-unified/.env
 ExecStart=/usr/bin/npm run start:prod
 ExecStop=/usr/bin/npm run stop
 Restart=always

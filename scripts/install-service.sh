@@ -50,9 +50,16 @@ cd -
 # Set ownership
 chown -R $SERVICE_USER:$SERVICE_USER $INSTALL_DIR
 
+# Ensure .env exists in the install directory
+if [ ! -f "$INSTALL_DIR/.env" ]; then
+    echo ".env file not found, copying from .env.example"
+    cp "$INSTALL_DIR/.env.example" "$INSTALL_DIR/.env"
+fi
+
 # Update service file with correct user and path
 sed -i "s/<your-user>/$SERVICE_USER/g" hrms.service
 sed -i "s|/opt/hrms-unified|$INSTALL_DIR|" hrms.service
+# EnvironmentFile is already set in hrms.service to load PORT and other variables from .env
 
 # Copy service file
 cp hrms.service /etc/systemd/system/
