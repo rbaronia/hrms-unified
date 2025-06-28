@@ -1,87 +1,76 @@
 # HRMS Application
 
-A modern Human Resource Management System (HRMS) built with Node.js and React. This application provides comprehensive user management features with a clean, intuitive interface.
+A modern Human Resource Management System (HRMS) built with Node.js, Express, and React. Provides user and department management with a clean, responsive UI.
 
 ## Features
-
-### User Management
-- Create, Read, Update, and Delete (CRUD) operations for users
-- Advanced search functionality with multiple field filters
-- Automatic User ID generation
-- Manager assignment with hierarchy validation
-- Department assignment with visual hierarchy
-- User type management
-- User status tracking
-
-### Department Management
-- Hierarchical department structure
-- Visual indentation for department relationships
-- Department-wise user grouping
-- Validation to prevent circular references
-
-### User Interface
-- Modern, responsive design using Material-UI
-- Interactive data grid with sorting and pagination
-- Real-time search and filtering
-- Success/Error notifications
-- Form validation with helpful messages
-- Mobile-friendly layout
-
-### Security & Validation
-- Input validation and sanitization
-- Error handling with detailed logging
-- Manager-subordinate relationship validation
-- Secure API endpoints
-- SELinux and firewall configuration
-- Systemd service management
-
-## Quick Start
-
-### 1. Install dependencies
-
-```bash
-npm install
-```
-
-### 2. Set environment variables (optional)
-
-You can set the backend server port by defining the `PORT` environment variable. By default, the backend runs on port 3000.
-
-You can create a `.env` file in the project root:
-
-```env
-PORT=4000
-```
-
-Or set it inline when running the server:
-
-```bash
-PORT=4000 npm start
-```
-
-### 3. Build and run
-
-```bash
-npm run build
-npm start
-```
-
-The application will be available at `http://localhost:<PORT>` (default: 3000).
-
----
+- User & department CRUD
+- Manager hierarchy
+- Visual department tree
+- Responsive Material-UI frontend
+- Input validation & error handling
 
 ## Prerequisites
-
-Before you begin, ensure you have the following installed:
-- Node.js (v16 or higher)
-- MySQL (v8 or higher)
-- npm (v8 or higher)
+- Node.js v16+
+- MySQL v8+
+- npm v8+
 - Git
 
-You can check if you have all prerequisites installed by running:
-```bash
-npm run check-env
+## Quick Start
+1. **Clone the repository**
+   ```bash
+git clone https://github.com/yourusername/hrms-unified.git
+cd hrms-unified
 ```
+2. **Configure the database**
+   - Create a database and user in MySQL:
+     ```sql
+     CREATE DATABASE hrmsdb;
+     CREATE USER 'hrmsuser'@'localhost' IDENTIFIED BY 'your_secure_password';
+     GRANT ALL PRIVILEGES ON hrmsdb.* TO 'hrmsuser'@'localhost';
+     FLUSH PRIVILEGES;
+     EXIT;
+     ```
+   - Initialize schema and sample data:
+     ```bash
+     mysql -u hrmsuser -p hrmsdb < db/init.sql
+     # or for new schema
+     mysql -u hrmsuser -p hrmsdb < db/new_schema.sql
+     ```
+3. **Set up environment**
+   ```bash
+cp .env.example .env
+# Edit .env for your DB credentials and settings
+```
+4. **Install dependencies and build**
+   ```bash
+npm install
+npm run build
+```
+5. **Start the application**
+   ```bash
+npm start
+```
+   The app will be available at http://localhost:<PORT> (where <PORT> is set in your .env file).
+
+## Development
+- Run in dev mode with hot reload:
+  ```bash
+  npm run dev
+  ```
+- Run tests:
+  ```bash
+  npm test
+  ```
+
+## Contributing
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/my-feature`
+3. Commit your changes: `git commit -am 'Add feature'`
+4. Push to your branch: `git push origin feature/my-feature`
+5. Submit a pull request
+
+## License
+MIT License. See LICENSE for details.
 
 ## Quick Start
 
@@ -112,7 +101,7 @@ npm run install-all
 npm run service:start
 ```
 
-The application will be available at http://localhost:3000
+The application will be available at http://localhost:<PORT> (where <PORT> is set in your .env file).
 
 ## Detailed Installation Guide
 
@@ -140,7 +129,7 @@ DB_NAME=hrmsdb
 DB_SSL=false
 
 # Server Configuration
-PORT=3000
+PORT=<your_desired_port> # Set the backend port here
 NODE_ENV=production
 
 # Security

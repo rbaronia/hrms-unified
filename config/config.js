@@ -2,9 +2,11 @@
 
 const config = {
   server: {
-    port: process.env.PORT || 3000,
+    // Port must be set in .env (PORT=)
+    port: process.env.PORT,
     env: process.env.NODE_ENV || 'development',
-    clientPort: process.env.CLIENT_PORT || 3000
+    // Client port must be set in .env (CLIENT_PORT=)
+    clientPort: process.env.CLIENT_PORT
   },
   database: {
     host: process.env.DB_HOST || '127.0.0.1',
@@ -25,7 +27,8 @@ const config = {
     }
   },
   security: {
-    corsOrigin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
+    // CORS origins must be set in .env (CORS_ORIGIN=)
+    corsOrigin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [],
     sessionSecret: process.env.SESSION_SECRET || 'your-session-secret-key'
   },
   logging: {

@@ -72,7 +72,7 @@ print_status "Starting the application..."
 "$ROOT_DIR/scripts/manage-service.sh" start
 
 print_status "Build and run completed successfully!"
-print_status "The application should now be running at http://localhost:3000"
+print_status "The application should now be running at http://localhost:$PORT (where PORT is set in your .env file)"
 print_warning "Press Ctrl+C to stop the application"
 
 # Wait for user input

@@ -6,7 +6,8 @@ dotenv.config();
 
 const config = {
     server: {
-        port: process.env.PORT || 3000,
+        // Port must be set in .env (PORT=)
+        port: process.env.PORT,
         env: process.env.NODE_ENV || 'development',
     },
     db: {
@@ -24,7 +25,8 @@ const config = {
         file: process.env.LOG_FILE || 'logs/hrms.log',
     },
     security: {
-        corsOrigin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:3000', 'http://localhost:3001'],
+        // CORS origins must be set in .env (CORS_ORIGIN=)
+        corsOrigin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [],
         sessionSecret: process.env.SESSION_SECRET || 'default-session-secret',
         jwtSecret: process.env.JWT_SECRET || 'default-jwt-secret',
         jwtExpiration: process.env.JWT_EXPIRATION || '24h',

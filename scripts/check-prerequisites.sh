@@ -107,7 +107,8 @@ check_firewall() {
         if systemctl is-active --quiet firewalld; then
             echo "✅ firewalld is running"
             # Check if required ports are open
-            local ports=("3000/tcp" "3306/tcp")
+            # Backend port must be set in .env as PORT=<your_desired_port>
+            local ports=("3306/tcp")
             for port in "${ports[@]}"; do
                 if firewall-cmd --list-ports | grep -q "$port"; then
                     echo "✅ Port $port is open in firewall"
