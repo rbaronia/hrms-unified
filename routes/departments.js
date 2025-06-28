@@ -89,22 +89,35 @@ router.get('/hierarchy', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const { deptname, parentid } = req.body;
-        
+
         if (!deptname) {
             return res.status(400).json({ error: 'Department name is required' });
         }
-        
-        const [result] = await db.query(
-            'INSERT INTO DEPARTMENT (DEPTNAME, PARENTID) VALUES (?, ?)',
-            [deptname, parentid]
-        );
-        
-        logger.info(`Created new department with ID: ${result.insertId}`);
-        res.status(201).json({ 
-            deptid: result.insertId,
-            deptname,
-            parentid
-        });
+
+        // If parentid is empty string or undefined, set to null
+        const parentIdValue = parentid === '' || parentid === undefined ? null : parentid;
+        try {
+            const [result] = await db.query(
+                'INSERT INTO DEPARTMENT (DEPTNAME, PARENTID) VALUES (?, ?)',
+                [deptname, parentIdValue]
+            );
+            logger.info(`Created new department with ID: ${result.insertId}`);
+            res.status(201).json({
+                deptid: result.insertId,
+                deptname,
+                parentid: parentIdValue
+            });
+        } catch (err) {
+            if (err.code === 'ER_DUP_ENTRY') {
+                logger.error('Duplicate department name');
+                return res.status(409).json({ error: 'Department name already exists' });
+            } else if (err.code === 'ER_NO_DEFAULT_FOR_FIELD') {
+                logger.error('Department creation failed: missing required field(s)');
+                return res.status(400).json({ error: 'Missing required field(s) for department' });
+            }
+            logger.error('Error creating department:', err);
+            res.status(500).json({ error: 'Internal server error', details: err.message });
+        }
     } catch (error) {
         logger.error('Error creating department:', error);
         res.status(500).json({ error: 'Internal server error' });

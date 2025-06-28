@@ -22,7 +22,12 @@
     "service:restart": "./scripts/manage-service.sh restart",
     "service:status": "./scripts/manage-service.sh status"
   },
-  "keywords": ["hrms", "react", "nodejs", "mysql"],
+  "keywords": [
+    "hrms",
+    "react",
+    "nodejs",
+    "mysql"
+  ],
   "author": "",
   "license": "ISC",
   "engines": {
@@ -30,35 +35,36 @@
     "npm": ">=8.0.0"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "mysql2": "^3.6.5",
-    "winston": "^3.11.0",
-    "morgan": "^1.10.0",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "compression": "^1.7.4",
-    "helmet": "^7.1.0",
-    "express-validator": "^7.0.1",
-    "jsonwebtoken": "^9.0.2",
-    "bcryptjs": "^2.4.3",
+    "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
-    "cookie-parser": "^1.4.6",
     "express-session": "^1.17.3",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "mysql2": "^3.6.5",
+    "sequelize": "^6.37.7",
     "swagger-ui-express": "^5.0.0",
-    "yamljs": "^0.3.0",
-    "winston-daily-rotate-file": "^4.7.1"
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^4.7.1",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2",
-    "jest": "^29.7.0",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.10.5",
+    "@types/supertest": "^6.0.2",
     "concurrently": "^8.0.1",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
     "prettier": "^3.1.1",
-    "supertest": "^6.3.3",
-    "@types/express": "^4.17.21",
-    "@types/node": "^20.10.5",
-    "@types/jest": "^29.5.11",
-    "@types/supertest": "^6.0.2"
+    "supertest": "^6.3.3"
   }
 }

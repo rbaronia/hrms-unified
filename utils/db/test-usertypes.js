@@ -1,3 +1,5 @@
+// Always load environment variables from .env
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
 const db = require('./connection');
 
 async function testUserTypes() {
