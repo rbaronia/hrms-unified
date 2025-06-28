@@ -2,8 +2,8 @@
 
 const config = {
   server: {
-    // Port must be set in .env (PORT=)
-    port: process.env.PORT,
+    // Port must be set in .env (PORT=); fallback to 4000 if not set
+    port: process.env.PORT || 4000,
     env: process.env.NODE_ENV || 'development',
     // Client port must be set in .env (CLIENT_PORT=)
     clientPort: process.env.CLIENT_PORT
