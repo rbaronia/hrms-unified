@@ -78,9 +78,14 @@ const DepartmentList: React.FC = () => {
 
   const fetchDepartments = async () => {
     try {
-      const response = await api.api.get('/departments');
-      const processedDepts = processHierarchy(response.data);
-      setDepartments(processedDepts);
+      const response = await api.api.get('/api/departments');
+      if (Array.isArray(response.data)) {
+        const processedDepts = processHierarchy(response.data);
+        setDepartments(processedDepts);
+      } else {
+        console.error('Unexpected departments API response:', response.data);
+        setDepartments([]);
+      }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching departments:', error);
@@ -122,12 +127,12 @@ const DepartmentList: React.FC = () => {
     e.preventDefault();
     try {
       if (editingDepartment) {
-        await api.api.put(`/departments/${editingDepartment.deptid}`, {
+        await api.api.put(`/api/departments/${editingDepartment.deptid}`, {
           deptname: formData.deptname,
           parentid: formData.parentid ? parseInt(formData.parentid) : null,
         });
       } else {
-        await api.api.post('/departments', {
+        await api.api.post('/api/departments', {
           deptname: formData.deptname,
           parentid: formData.parentid ? parseInt(formData.parentid) : null,
         });
@@ -142,7 +147,7 @@ const DepartmentList: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm(labels.messages.confirmDelete)) {
       try {
-        await api.api.delete(`/departments/${id}`);
+        await api.api.delete(`/api/departments/${id}`);
         fetchDepartments();
       } catch (error) {
         console.error('Error deleting department:', error);

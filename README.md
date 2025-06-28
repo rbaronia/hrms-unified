@@ -35,6 +35,41 @@ A modern Human Resource Management System (HRMS) built with Node.js and React. T
 - SELinux and firewall configuration
 - Systemd service management
 
+## Quick Start
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Set environment variables (optional)
+
+You can set the backend server port by defining the `PORT` environment variable. By default, the backend runs on port 3000.
+
+You can create a `.env` file in the project root:
+
+```env
+PORT=4000
+```
+
+Or set it inline when running the server:
+
+```bash
+PORT=4000 npm start
+```
+
+### 3. Build and run
+
+```bash
+npm run build
+npm start
+```
+
+The application will be available at `http://localhost:<PORT>` (default: 3000).
+
+---
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:

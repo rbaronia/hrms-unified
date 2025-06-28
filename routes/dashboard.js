@@ -75,9 +75,18 @@ router.get('/', async (req, res) => {
     
     if (!users || users.length === 0) {
       logger.warn('No users found in database');
-      return res.status(404).json({ 
-        error: 'No users found',
-        message: 'The database returned no user records'
+      return res.json({
+        userStatusCounts: {
+          total: 0,
+          active: 0,
+          disabled: 0,
+          terminated: 0,
+          recentlyUpdated: 0
+        },
+        departmentDistribution: [],
+        userTypeDistribution: [],
+        managerDistribution: [],
+        recentUpdates: []
       });
     }
     
@@ -127,7 +136,7 @@ router.get('/', async (req, res) => {
         m.LASTNAME as manager_lastname,
         COUNT(e.USERID) as reportee_count
       FROM USER m
-      LEFT JOIN USER e ON e.MANAGER = m.ID
+      LEFT JOIN USER e ON e.MANAGER = m.USERID
       WHERE m.ISMANAGER = '1'
       GROUP BY m.USERID, m.FIRSTNAME, m.LASTNAME
       HAVING reportee_count > 0

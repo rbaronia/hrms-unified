@@ -317,7 +317,7 @@ const UserForm: React.FC = () => {
       <Box mb={3} display="flex" alignItems="center">
         <Button
           startIcon={<ArrowBack />}
-          onClick={() => navigate('/users')}
+          onClick={() => navigate('/api/users')}
           sx={{ mr: 2 }}
         >
           Back
@@ -605,7 +605,7 @@ const UserForm: React.FC = () => {
                 <Box display="flex" justifyContent="flex-end" gap={2}>
                   <Button
                     variant="outlined"
-                    onClick={() => navigate('/users')}
+                    onClick={() => navigate('/api/users')}
                     disabled={loading}
                   >
                     Cancel

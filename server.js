@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const morgan = require('morgan');
 const path = require('path');
@@ -76,6 +78,16 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
+// Extra logging for env file and port
+logger.info(`process.env.PORT: ${process.env.PORT}`);
+logger.info(`Resolved config.server.port: ${config.server.port}`);
+logger.info(`NODE_ENV: ${process.env.NODE_ENV}`);
+try {
+  const envFilePath = require('path').resolve(__dirname, '.env');
+  logger.info(`Attempting to load .env file from: ${envFilePath}`);
+} catch (e) {
+  logger.warn('Could not resolve .env file path');
+}
 // Start server
 const port = config.server.port;
 app.listen(port, () => {

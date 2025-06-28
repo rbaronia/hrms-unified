@@ -29,17 +29,23 @@ const UserList: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await api.api.get<User[]>('/users');
-      const processedUsers = response.data.map((user: User) => ({
-        ...user,
-        id: user.id,
-        name: `${user.firstname} ${user.lastname}`,
-        department: user.deptname,
-        type: user.typename,
-        lastModified: new Date(user.date_modified).toLocaleString()
-      }));
-      setUsers(processedUsers);
-      setFilteredUsers(processedUsers);
+      const response = await api.api.get<User[]>('/api/users');
+      if (Array.isArray(response.data)) {
+        const processedUsers = response.data.map((user: User) => ({
+          ...user,
+          id: user.id,
+          name: `${user.firstname} ${user.lastname}`,
+          department: user.deptname,
+          type: user.typename,
+          lastModified: new Date(user.date_modified).toLocaleString()
+        }));
+        setUsers(processedUsers);
+        setFilteredUsers(processedUsers);
+      } else {
+        console.error('Unexpected users API response:', response.data);
+        setUsers([]);
+        setFilteredUsers([]);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {

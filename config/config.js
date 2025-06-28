@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '../.env' });
+// require('dotenv').config({ path: '../.env' }); // Now loaded in server.js
 
 const config = {
   server: {
