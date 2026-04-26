@@ -11,30 +11,33 @@ import Admin from './pages/Admin';
 import AdminPanel from './components/AdminPanel';
 import { LabelProvider } from './context/LabelContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 const App: React.FC = () => {
   return (
     <ThemeProvider>
-      <LabelProvider>
-        <Box sx={{ display: 'flex' }}>
-          <Navigation />
-          <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-            <Container maxWidth="lg">
-              <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/users" element={<UserList />} />
-                <Route path="/users/new" element={<UserForm />} />
-                <Route path="/users/:id/edit" element={<UserForm />} />
-                <Route path="/departments" element={<DepartmentList />} />
-                <Route path="/user-types" element={<UserTypes />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/admin/panel" element={<AdminPanel />} />
-              </Routes>
-            </Container>
+      <NotificationProvider>
+        <LabelProvider>
+          <Box sx={{ display: 'flex' }}>
+            <Navigation />
+            <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+              <Container maxWidth="lg">
+                <Routes>
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/users" element={<UserList />} />
+                  <Route path="/users/new" element={<UserForm />} />
+                  <Route path="/users/:id/edit" element={<UserForm />} />
+                  <Route path="/departments" element={<DepartmentList />} />
+                  <Route path="/user-types" element={<UserTypes />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/admin/panel" element={<AdminPanel />} />
+                </Routes>
+              </Container>
+            </Box>
           </Box>
-        </Box>
-      </LabelProvider>
+        </LabelProvider>
+      </NotificationProvider>
     </ThemeProvider>
   );
 };

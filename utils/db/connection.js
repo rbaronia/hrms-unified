@@ -6,20 +6,20 @@ const logger = require('../logger');
 let pool;
 try {
     pool = mysql.createPool({
-        host: config.db.host,
-        port: config.db.port,
-        user: config.db.user,
-        password: config.db.password,
-        database: config.db.database,
+        host: config.database.host,
+        port: config.database.port,
+        user: config.database.user,
+        password: config.database.password,
+        database: config.database.database,
         waitForConnections: true,
-        connectionLimit: config.db.connectionLimit,
-        queueLimit: config.db.queueLimit,
-        ssl: config.db.ssl ? { rejectUnauthorized: false } : undefined
+        connectionLimit: config.database.connectionLimit,
+        queueLimit: config.database.queueLimit,
+        ssl: config.database.ssl ? { rejectUnauthorized: false } : undefined
     });
 
     logger.info('Database connection pool successfully created.', {
-        host: config.db.host,
-        database: config.db.database,
+        host: config.database.host,
+        database: config.database.database,
     });
 } catch (error) {
     logger.error(`Error creating database connection pool: ${error.message}`);

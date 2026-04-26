@@ -7,6 +7,7 @@ import {
   Typography,
   TextField,
   InputAdornment,
+  Alert,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -18,17 +19,21 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { User } from '../types/user';
 import labels from '../utils/labels';
 import api from '../utils/api';
+import { useNotification } from '../context/NotificationContext';
 
 const UserList: React.FC = () => {
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await api.api.get<User[]>('/api/users');
       if (Array.isArray(response.data)) {
         const processedUsers = response.data.map((user: User) => ({
@@ -48,6 +53,8 @@ const UserList: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching users:', error);
+      setError('Failed to load users. Please try again.');
+      showNotification('Failed to load users', 'error');
     } finally {
       setLoading(false);
     }
@@ -80,10 +87,12 @@ const UserList: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm(labels.messages.confirmDelete)) {
       try {
-        await api.api.delete(`/users/${id}`);
+        await api.api.delete(`/api/users/${id}`);
+        showNotification('User deleted successfully', 'success');
         fetchUsers();
       } catch (error) {
         console.error('Error deleting user:', error);
+        showNotification('Failed to delete user', 'error');
       }
     }
   };
@@ -122,6 +131,12 @@ const UserList: React.FC = () => {
 
   return (
     <Paper sx={{ p: 2 }}>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+      
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
         <Typography variant="h5" component="h2">
           {labels.user.title}

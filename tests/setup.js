@@ -9,10 +9,10 @@ let mysqlConnection;
 beforeAll(async () => {
     // Setup test database connection
     mysqlConnection = await mysql.createConnection({
-        host: config.db.host,
-        user: config.db.user,
-        password: config.db.password,
-        database: config.db.database
+        host: config.database.host,
+        user: config.database.user,
+        password: config.database.password,
+        database: config.database.database
     });
 
     // Create test tables if needed

@@ -111,11 +111,17 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const getStatusColor = (count: number, total: number) => {
-    const percentage = (count / total) * 100;
-    if (percentage > 66) return '#4CAF50';
-    if (percentage > 33) return '#FFC107';
-    return '#F44336';
+  const getStatusColor = (status: 'active' | 'disabled' | 'terminated') => {
+    switch (status) {
+      case 'active':
+        return '#4CAF50'; // Green for active
+      case 'disabled':
+        return '#FFC107'; // Orange for disabled
+      case 'terminated':
+        return '#F44336'; // Red for terminated
+      default:
+        return '#757575'; // Gray for unknown
+    }
   };
 
   return (
@@ -135,7 +141,7 @@ const Dashboard: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom>Active Users</Typography>
-                <Typography variant="h4" style={{ color: getStatusColor(data.userStatusCounts.active, data.userStatusCounts.total) }}>
+                <Typography variant="h4" sx={{ color: getStatusColor('active') }}>
                   {data.userStatusCounts.active}
                 </Typography>
               </CardContent>
@@ -145,7 +151,7 @@ const Dashboard: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom>Disabled Users</Typography>
-                <Typography variant="h4" style={{ color: getStatusColor(data.userStatusCounts.disabled, data.userStatusCounts.total) }}>
+                <Typography variant="h4" sx={{ color: getStatusColor('disabled') }}>
                   {data.userStatusCounts.disabled}
                 </Typography>
               </CardContent>
@@ -155,7 +161,7 @@ const Dashboard: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom>Terminated Users</Typography>
-                <Typography variant="h4" style={{ color: getStatusColor(data.userStatusCounts.terminated, data.userStatusCounts.total) }}>
+                <Typography variant="h4" sx={{ color: getStatusColor('terminated') }}>
                   {data.userStatusCounts.terminated}
                 </Typography>
               </CardContent>
@@ -165,7 +171,7 @@ const Dashboard: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom>Updated (24h)</Typography>
-                <Typography variant="h4" style={{ color: '#2196F3' }}>
+                <Typography variant="h4" sx={{ color: 'primary.main' }}>
                   {data.userStatusCounts.recentlyUpdated}
                 </Typography>
               </CardContent>
