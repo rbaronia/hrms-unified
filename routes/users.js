@@ -94,7 +94,7 @@ router.get('/', async (req, res) => {
         const deptHierarchy = await getDepartmentHierarchy();
 
         const [rows] = await db.query(`
-            SELECT 
+            SELECT
                 u.ID as id,
                 u.USERID as userid,
                 u.FIRSTNAME as firstname,
@@ -144,14 +144,15 @@ router.get('/managers', async (req, res) => {
     try {
         logger.info('Fetching active managers');
         const [managers] = await db.query(`
-            SELECT 
-                ID as id,
+            SELECT
+                MIN(ID) as id,
                 USERID as userid,
                 FIRSTNAME as firstname,
                 LASTNAME as lastname,
                 CONCAT(FIRSTNAME, ' ', LASTNAME) as displayName
-            FROM USER 
+            FROM USER
             WHERE ISMANAGER = '1' AND STATUS = '0'
+            GROUP BY USERID, FIRSTNAME, LASTNAME
             ORDER BY FIRSTNAME, LASTNAME
         `);
 
@@ -196,7 +197,7 @@ router.get('/:id', async (req, res) => {
     try {
         logger.info(`Fetching user with ID: ${req.params.id}`);
         const [rows] = await db.query(`
-            SELECT 
+            SELECT
                 u.ID as id,
                 u.USERID as userid,
                 u.FIRSTNAME as firstname,

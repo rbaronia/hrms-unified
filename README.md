@@ -1,317 +1,276 @@
-# HRMS Application
+# HRMS - Human Resource Management System
 
-A modern Human Resource Management System (HRMS) built with Node.js, Express, and React. Provides user and department management with a clean, responsive UI.
+A modern, full-stack HRMS application built with Node.js, Express, React, and MySQL. Designed for user and department management with a clean, responsive UI.
 
-## Features
-- User & department CRUD
-- Manager hierarchy
-- Visual department tree
-- Responsive Material-UI frontend
-- Input validation & error handling
+---
 
-## Prerequisites
-- Node.js v16+
-- MySQL v8+
-- npm v8+
-- Git
+## 🌟 Features
 
-## Quick Start
+- **User Management**: Complete CRUD operations for users
+- **Department Hierarchy**: Visual tree structure with parent-child relationships
+- **User Types**: Flexible user type management
+- **Dashboard**: Real-time statistics and distribution charts
+- **Manager Assignment**: Unique manager selection with no duplicates
+- **Responsive UI**: Material-UI based modern interface
+- **Notifications**: Global notification system for user feedback
+- **Status Management**: Active, Disabled, and Terminated user states
 
-1. Clone the repository:
+---
+
+## 🚀 Quick Start
+
 ```bash
-git clone https://github.com/yourusername/hrms-unified.git
-cd hrms-unified
-```
-
-2. Initialize the database:
-```bash
-mysql -u root -p < db/init.sql
-```
-
-3. Create environment configuration:
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-4. Install dependencies and build:
-```bash
+# 1. Install dependencies
 npm run install-all
+
+# 2. Build frontend
+cd client && npm run build && cd ..
+
+# 3. Start application
+npm start
 ```
 
-5. Start the application:
-```bash
-npm run service:start
-```
+Access at: **http://localhost:4000**
 
-The application will be available at http://localhost:<PORT> (where <PORT> is set in your .env file).
+📖 **For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)**
 
-## Detailed Installation Guide
+---
 
-### Database Setup
+## 📋 Prerequisites
 
-The database initialization script (`db/init.sql`) will:
-1. Create a new database named 'hrmsdb'
-2. Create all necessary tables (USER, DEPARTMENT, USERTYPE)
-3. Set up foreign key relationships
-4. Populate tables with sample data
+- Node.js v16+
+- npm v8+
+- MySQL v8+ (remote database)
+- `.env` file configured
 
-You can customize the sample data by editing `db/init.sql` before running it.
+---
 
-### Configuration
+## 🔧 Configuration
 
-The `.env` file supports the following options:
+Create a `.env` file in the root directory:
 
 ```properties
 # Database Configuration
-DB_HOST=127.0.0.1
+DB_HOST=your-db-host
 DB_PORT=3306
-DB_USER=hrmsuser
-DB_PASSWORD=your_secure_password
+DB_USER=your-db-user
+DB_PASSWORD=your-db-password
 DB_NAME=hrmsdb
 DB_SSL=false
 
 # Server Configuration
-PORT=<your_desired_port> # Set the backend port here
+PORT=4000
 NODE_ENV=production
 
 # Security
-JWT_SECRET=your_jwt_secret_key
-CORS_ORIGIN=http://localhost:3000
+JWT_SECRET=your_jwt_secret
+CORS_ORIGIN=http://localhost:4000
 
 # Logging
 LOG_LEVEL=info
 LOG_FILE=logs/hrms.log
-LOG_MAX_SIZE=10m
-LOG_MAX_FILES=7d
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
 ```
 
-### Running as a Service
+---
 
-To install and run the application as a system service:
+## 📁 Project Structure
 
-1. Install the service:
+```
+hrms-unified/
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/    # React components
+│   │   ├── context/       # React contexts
+│   │   ├── pages/         # Page components
+│   │   ├── types/         # TypeScript types
+│   │   └── utils/         # Utility functions
+│   └── public/            # Static assets
+├── config/                # Configuration files
+├── controllers/           # Route controllers
+├── db/                    # Database scripts
+├── middleware/            # Express middleware
+├── routes/                # API routes
+├── utils/                 # Backend utilities
+├── server.js              # Express server
+└── .env                   # Environment variables
+```
+
+---
+
+## 🛠️ Available Commands
+
+### Development
 ```bash
-sudo npm run service:install
+npm start              # Start production mode
+npm run dev            # Start development mode (hot reload)
+npm run build          # Build frontend only
 ```
 
-2. Manage the service:
+### Installation
 ```bash
-sudo npm run service:start    # Start the service
-sudo npm run service:stop     # Stop the service
-sudo npm run service:restart  # Restart the service
-sudo npm run service:status   # Check status
+npm install            # Install backend dependencies
+npm run install-all    # Install all dependencies
 ```
 
-3. View logs:
+### Testing
 ```bash
-journalctl -u hrms.service -f
+npm test               # Run tests
+npm run test-db        # Test database connection
+./verify-setup.sh      # Verify complete setup
 ```
 
-### Database Backups
-
-The application includes an automated backup script:
-
+### Maintenance
 ```bash
-# Run a manual backup
-npm run backup
-
-# View backups in db/backups directory
-ls -l db/backups
+npm run stop           # Stop the server
+npm run lint           # Run linter
+npm run format         # Format code
 ```
 
-## Installation on RHEL (Red Hat Enterprise Linux)
+---
 
-### Prerequisites
+## 🗄️ Database Schema
 
-1. Install Node.js and npm:
-```bash
-# Add NodeSource repository
-sudo dnf module enable nodejs:16
-sudo dnf install nodejs npm
+### Main Tables
 
-# Verify installation
-node --version  # Should be v16.x or higher
-npm --version   # Should be v8.x or higher
-```
+- **USER**: User information and credentials
+- **DEPARTMENT**: Department hierarchy
+- **USERTYPE**: User type definitions
 
-2. Install MySQL:
-```bash
-# Add MySQL repository
-sudo dnf install mysql-server
+### Views
 
-# Start and enable MySQL
-sudo systemctl start mysqld
-sudo systemctl enable mysqld
+- **USER_DETAILS**: Denormalized view with department names, user type names, and manager userids
 
-# Secure MySQL installation
-sudo mysql_secure_installation
+---
 
-# Verify MySQL is running
-sudo systemctl status mysqld
-```
+## 🔌 API Endpoints
 
-3. Install Git:
-```bash
-sudo dnf install git
-```
+### Users
+- `GET /api/users` - Get all users
+- `GET /api/users/:id` - Get user by ID
+- `POST /api/users` - Create new user
+- `PUT /api/users/:id` - Update user
+- `DELETE /api/users/:id` - Delete user
+- `GET /api/users/managers` - Get all managers (unique)
 
-4. Install development tools:
-```bash
-sudo dnf groupinstall "Development Tools"
-```
+### Departments
+- `GET /api/departments` - Get all departments
+- `GET /api/departments/:id` - Get department by ID
+- `POST /api/departments` - Create department
+- `PUT /api/departments/:id` - Update department
+- `DELETE /api/departments/:id` - Delete department
 
-### Application Setup
+### User Types
+- `GET /api/usertypes` - Get all user types
+- `GET /api/usertypes/:id` - Get user type by ID
+- `POST /api/usertypes` - Create user type
+- `PUT /api/usertypes/:id` - Update user type
+- `DELETE /api/usertypes/:id` - Delete user type
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/hrms-unified.git
-cd hrms-unified
-```
+### Dashboard
+- `GET /api/dashboard/stats` - Get dashboard statistics
 
-2. Set up the database:
-```bash
-# Create database and user
-sudo mysql -u root -p
-```
+---
 
-```sql
-CREATE DATABASE hrmsdb;
-CREATE USER 'hrmsuser'@'localhost' IDENTIFIED BY 'your_secure_password';
-GRANT ALL PRIVILEGES ON hrmsdb.* TO 'hrmsuser'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
-```
+## 🎨 Frontend Technologies
 
-```bash
-# Initialize database schema
-mysql -u hrmsuser -p hrmsdb < db/init.sql
-```
+- **React 18** - UI framework
+- **TypeScript** - Type safety
+- **Material-UI (MUI)** - Component library
+- **React Router** - Navigation
+- **Axios** - HTTP client
+- **Recharts** - Data visualization
 
-3. Configure the application:
-```bash
-# Create .env file from example
-cp .env.example .env
-# Edit .env with your configuration
-```
+---
 
-4. Install dependencies:
-```bash
-# Install all dependencies
-npm run install-all
-```
+## 🔧 Backend Technologies
 
-5. Build the application:
-```bash
-# Build frontend and backend
-npm run build
-```
+- **Node.js** - Runtime environment
+- **Express** - Web framework
+- **MySQL2** - Database driver
+- **Winston** - Logging
+- **Helmet** - Security headers
+- **CORS** - Cross-origin resource sharing
+- **Compression** - Response compression
 
-### Running as a Systemd Service
+---
 
-1. Install the service:
-```bash
-sudo npm run service:install
-```
+## 🔐 Security Features
 
-2. Start and enable the service:
-```bash
-sudo systemctl daemon-reload
-sudo systemctl start hrms
-sudo systemctl enable hrms
-```
+- Helmet for security headers
+- CORS configuration
+- Rate limiting
+- SQL injection protection (parameterized queries)
+- XSS protection (React built-in)
+- Input validation
 
-### Firewall Configuration
+---
 
-1. Configure firewalld:
-```bash
-# Allow application port
-sudo firewall-cmd --permanent --add-port=3000/tcp
+## 📊 Recent Improvements
 
-# Allow MySQL if needed externally
-sudo firewall-cmd --permanent --add-port=3306/tcp
+### Fixed Issues
+✅ Duplicate manager entries in dropdown
+✅ Navigation path bugs
+✅ Database connection configuration
+✅ Status color logic in dashboard
 
-# Reload firewall
-sudo firewall-cmd --reload
-```
+### New Features
+✅ Global notification system
+✅ Improved error handling
+✅ Better UI polish and styling
+✅ Unique manager selection
 
-### SELinux Configuration
+---
 
-If SELinux is enabled:
+## 🐛 Troubleshooting
 
-```bash
-# Allow Node.js to listen on port 3000
-sudo semanage port -a -t http_port_t -p tcp 3000
+See [SETUP_GUIDE.md](SETUP_GUIDE.md) for detailed troubleshooting steps.
 
-# Allow Node.js network connections
-sudo setsebool -P httpd_can_network_connect 1
+Common issues:
+- **Cannot connect to database**: Check .env credentials and IP whitelist
+- **Port already in use**: Change PORT in .env or kill existing process
+- **Module not found**: Run `npm run install-all`
+- **index.html not found**: Rebuild frontend with `cd client && npm run build`
 
-# Allow Node.js to connect to MySQL
-sudo setsebool -P httpd_can_network_connect_db 1
-```
+---
 
-## Development
+## 📚 Documentation
 
-### Running in Development Mode
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Complete setup and running instructions
+- **[swagger.yaml](swagger.yaml)** - API documentation
+- **[db/init.sql](db/init.sql)** - Database schema
 
-1. Start the development server:
-```bash
-npm run dev
-```
+---
 
-This will start both the backend and frontend in development mode with hot reloading.
-
-### Running Tests
-
-```bash
-# Run all tests
-npm test
-
-# Run specific test suites
-npm run test:users
-npm run test:departments
-```
-
-## Troubleshooting
-
-1. If you see "index.html not found" error:
-```bash
-# Rebuild the frontend
-cd client && npm run build
-```
-
-2. If the service won't start:
-- Check logs: `journalctl -u hrms.service -f`
-- Verify MySQL is running: `systemctl status mysqld`
-- Check .env file permissions
-- Ensure all dependencies are installed
-
-3. If you can't connect to MySQL:
-- Verify MySQL is running: `systemctl status mysqld`
-- Check credentials in .env
-- Ensure the database exists: `mysql -u root -p -e "SHOW DATABASES;"`
-
-4. SELinux Issues:
-```bash
-# Check SELinux status
-getenforce
-
-# View SELinux denials
-sudo ausearch -m AVC -ts recent
-```
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/my-new-feature`
-3. Commit your changes: `git commit -am 'Add some feature'`
-4. Push to the branch: `git push origin feature/my-new-feature`
+2. Create your feature branch: `git checkout -b feature/my-feature`
+3. Commit your changes: `git commit -am 'Add new feature'`
+4. Push to the branch: `git push origin feature/my-feature`
 5. Submit a pull request
 
-## License
+---
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 📝 License
+
+This project is licensed under the ISC License.
+
+---
+
+## 🆘 Support
+
+For issues or questions:
+1. Check [SETUP_GUIDE.md](SETUP_GUIDE.md)
+2. Review logs: `tail -f server.log`
+3. Check browser console (F12)
+4. Verify .env configuration
+
+---
+
+## ✨ Acknowledgments
+
+Built with modern web technologies for efficient HR management and IAM/JML simulation.
+
+---
+
+**Made with ❤️ for efficient HR management**
