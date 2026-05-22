@@ -33,6 +33,7 @@ npm start
 Access at: **http://localhost:4000**
 
 📖 **For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)**
+🚀 **For RHEL production deployment with auto-restart, see [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)**
 
 ---
 
@@ -235,7 +236,8 @@ Common issues:
 
 ## 📚 Documentation
 
-- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Complete setup and running instructions
+- **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Complete RHEL production deployment with systemd auto-restart
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Development setup and running instructions
 - **[swagger.yaml](swagger.yaml)** - API documentation
 - **[db/init.sql](db/init.sql)** - Database schema
 
